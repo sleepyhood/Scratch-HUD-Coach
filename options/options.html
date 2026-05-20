@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HUD Coach 옵션</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 16px; max-width: 720px; }
+    textarea { width: 100%; min-height: 160px; }
+    .row { display: grid; gap: 8px; }
+    .btn { padding: 8px 10px; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2 style="margin-top:0">Scratch HUD Coach – 옵션</h2>
+  <p>※ 1차 버전에선 서버 없이 기본 체크리스트만 사용합니다. 과제 JSON을 붙여넣어 저장하면 이후 버전에서 확장할 수 있어요.</p>
+  <div class="row">
+    <label>과제 JSON</label>
+    <textarea id="assign-json" placeholder='{"required": ["event_whenflagclicked", "control_forever"]}'></textarea>
+    <button class="btn" id="save">저장</button>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

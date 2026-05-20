@@ -1,0 +1,168 @@
+{
+    "Sprite1": [
+        [
+            {
+                "opcode": "event_whenflagclicked"
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "space"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenthisspriteclicked"
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenbackdropswitchesto",
+                "fields": {
+                    "BACKDROP": "backdrop1"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whengreaterthan",
+                "fields": {
+                    "WHENGREATERTHANMENU": "LOUDNESS"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenbroadcastreceived",
+                "fields": {
+                    "BROADCAST_OPTION": "메시지1"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_broadcast",
+                "inputs": {
+                    "BROADCAST_INPUT": {
+                        "opcode": "event_broadcast_menu",
+                        "fields": {
+                            "BROADCAST_OPTION": "메시지1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_broadcastandwait",
+                "inputs": {
+                    "BROADCAST_INPUT": {
+                        "opcode": "event_broadcast_menu",
+                        "fields": {
+                            "BROADCAST_OPTION": "메시지1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whengreaterthan",
+                "fields": {
+                    "WHENGREATERTHANMENU": "TIMER"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "up arrow"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "down arrow"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "right arrow"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "left arrow"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "any"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "a"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "z"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "0"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "event_whenkeypressed",
+                "fields": {
+                    "KEY_OPTION": "9"
+                }
+            }
+        ]
+    ]
+}

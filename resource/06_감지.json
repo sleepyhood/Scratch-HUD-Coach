@@ -1,0 +1,451 @@
+{
+    "Sprite1": [
+        [
+            {
+                "opcode": "sensing_touchingobject",
+                "inputs": {
+                    "TOUCHINGOBJECTMENU": {
+                        "opcode": "sensing_touchingobjectmenu",
+                        "fields": {
+                            "TOUCHINGOBJECTMENU": "_mouse_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_touchingobject",
+                "inputs": {
+                    "TOUCHINGOBJECTMENU": {
+                        "opcode": "sensing_touchingobjectmenu",
+                        "fields": {
+                            "TOUCHINGOBJECTMENU": "_edge_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_touchingcolor",
+                "inputs": {
+                    "COLOR": {
+                        "opcode": "colour_picker",
+                        "fields": {
+                            "COLOUR": "#bf58a2"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_coloristouchingcolor",
+                "inputs": {
+                    "COLOR": {
+                        "opcode": "colour_picker",
+                        "fields": {
+                            "COLOUR": "#b36c6a"
+                        }
+                    },
+                    "COLOR2": {
+                        "opcode": "colour_picker",
+                        "fields": {
+                            "COLOUR": "#90a6c3"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_distanceto",
+                "inputs": {
+                    "DISTANCETOMENU": {
+                        "opcode": "sensing_distancetomenu",
+                        "fields": {
+                            "DISTANCETOMENU": "_mouse_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_askandwait",
+                "inputs": {
+                    "QUESTION": {
+                        "opcode": "text",
+                        "fields": {
+                            "TEXT": "너 이름이 뭐니?"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_answer"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_keypressed",
+                "inputs": {
+                    "KEY_OPTION": {
+                        "opcode": "sensing_keyoptions",
+                        "fields": {
+                            "KEY_OPTION": "space"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_keypressed",
+                "inputs": {
+                    "KEY_OPTION": {
+                        "opcode": "sensing_keyoptions",
+                        "fields": {
+                            "KEY_OPTION": "up arrow"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_keypressed",
+                "inputs": {
+                    "KEY_OPTION": {
+                        "opcode": "sensing_keyoptions",
+                        "fields": {
+                            "KEY_OPTION": "any"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_keypressed",
+                "inputs": {
+                    "KEY_OPTION": {
+                        "opcode": "sensing_keyoptions",
+                        "fields": {
+                            "KEY_OPTION": "a"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_keypressed",
+                "inputs": {
+                    "KEY_OPTION": {
+                        "opcode": "sensing_keyoptions",
+                        "fields": {
+                            "KEY_OPTION": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_mousedown"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_mousex"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_mousey"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_setdragmode",
+                "fields": {
+                    "DRAG_MODE": "draggable"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_setdragmode",
+                "fields": {
+                    "DRAG_MODE": "not draggable"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_loudness"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_timer"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_resettimer"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "backdrop #"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "_stage_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "backdrop #"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "_stage_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "volume"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "_stage_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "나의 변수"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "_stage_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "YEAR"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "MONTH"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "DATE"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "DAYOFWEEK"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "HOUR"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "MINUTE"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_current",
+                "fields": {
+                    "CURRENTMENU": "SECOND"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "x position"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "y position"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "direction"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "costume #"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "costume name"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "size"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_of",
+                "fields": {
+                    "PROPERTY": "volume"
+                },
+                "inputs": {
+                    "OBJECT": {
+                        "opcode": "sensing_of_object_menu",
+                        "fields": {
+                            "OBJECT": "Apple"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_dayssince2000"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_online"
+            }
+        ],
+        [
+            {
+                "opcode": "sensing_username"
+            }
+        ]
+    ]
+}

@@ -1,0 +1,135 @@
+{
+    "Sprite1": [
+        [
+            {
+                "opcode": "sound_playuntildone",
+                "inputs": {
+                    "SOUND_MENU": {
+                        "opcode": "sound_sounds_menu",
+                        "fields": {
+                            "SOUND_MENU": "Meow"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_play",
+                "inputs": {
+                    "SOUND_MENU": {
+                        "opcode": "sound_sounds_menu",
+                        "fields": {
+                            "SOUND_MENU": "Meow"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_stopallsounds"
+            }
+        ],
+        [
+            {
+                "opcode": "sound_changeeffectby",
+                "fields": {
+                    "EFFECT": "PITCH"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_changeeffectby",
+                "fields": {
+                    "EFFECT": "PAN"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_seteffectto",
+                "fields": {
+                    "EFFECT": "PITCH"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "100"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_seteffectto",
+                "fields": {
+                    "EFFECT": "PAN"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "100"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_cleareffects"
+            }
+        ],
+        [
+            {
+                "opcode": "sound_changevolumeby",
+                "inputs": {
+                    "VOLUME": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "-10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_setvolumeto",
+                "inputs": {
+                    "VOLUME": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "100"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "sound_volume"
+            }
+        ]
+    ]
+}

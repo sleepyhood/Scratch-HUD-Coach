@@ -1,0 +1,501 @@
+{
+    "Sprite1": [
+        [
+            {
+                "opcode": "looks_sayforsecs",
+                "inputs": {
+                    "MESSAGE": {
+                        "opcode": "text",
+                        "fields": {
+                            "TEXT": "안녕!"
+                        }
+                    },
+                    "SECS": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "2"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_say",
+                "inputs": {
+                    "MESSAGE": {
+                        "opcode": "text",
+                        "fields": {
+                            "TEXT": "안녕!"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_thinkforsecs",
+                "inputs": {
+                    "MESSAGE": {
+                        "opcode": "text",
+                        "fields": {
+                            "TEXT": "음..."
+                        }
+                    },
+                    "SECS": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "2"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_think",
+                "inputs": {
+                    "MESSAGE": {
+                        "opcode": "text",
+                        "fields": {
+                            "TEXT": "음..."
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_switchcostumeto",
+                "inputs": {
+                    "COSTUME": {
+                        "opcode": "looks_costume",
+                        "fields": {
+                            "COSTUME": "costume1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_switchcostumeto",
+                "inputs": {
+                    "COSTUME": {
+                        "opcode": "looks_costume",
+                        "fields": {
+                            "COSTUME": "costume2"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_nextcostume"
+            }
+        ],
+        [
+            {
+                "opcode": "looks_switchbackdropto",
+                "inputs": {
+                    "BACKDROP": {
+                        "opcode": "looks_backdrops",
+                        "fields": {
+                            "BACKDROP": "backdrop1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_switchbackdropto",
+                "inputs": {
+                    "BACKDROP": {
+                        "opcode": "looks_backdrops",
+                        "fields": {
+                            "BACKDROP": "next backdrop"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_switchbackdropto",
+                "inputs": {
+                    "BACKDROP": {
+                        "opcode": "looks_backdrops",
+                        "fields": {
+                            "BACKDROP": "previous backdrop"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_switchbackdropto",
+                "inputs": {
+                    "BACKDROP": {
+                        "opcode": "looks_backdrops",
+                        "fields": {
+                            "BACKDROP": "random backdrop"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_nextcostume"
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changesizeby",
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_setsizeto",
+                "inputs": {
+                    "SIZE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "100"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "COLOR"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "FISHEYE"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "WHIRL"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "PIXELATE"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "MOSAIC"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "BRIGHTNESS"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_changeeffectby",
+                "fields": {
+                    "EFFECT": "GHOST"
+                },
+                "inputs": {
+                    "CHANGE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "25"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "COLOR"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "FISHEYE"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "WHIRL"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "PIXELATE"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "MOSAIC"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "BRIGHTNESS"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_seteffectto",
+                "fields": {
+                    "EFFECT": "GHOST"
+                },
+                "inputs": {
+                    "VALUE": {
+                        "opcode": "math_number",
+                        "fields": {
+                            "NUM": "0"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_cleargraphiceffects"
+            }
+        ],
+        [
+            {
+                "opcode": "looks_hide"
+            }
+        ],
+        [
+            {
+                "opcode": "looks_gotofrontback",
+                "fields": {
+                    "FRONT_BACK": "front"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_gotofrontback",
+                "fields": {
+                    "FRONT_BACK": "back"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_goforwardbackwardlayers",
+                "fields": {
+                    "FORWARD_BACKWARD": "forward"
+                },
+                "inputs": {
+                    "NUM": {
+                        "opcode": "math_integer",
+                        "fields": {
+                            "NUM": "1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_goforwardbackwardlayers",
+                "fields": {
+                    "FORWARD_BACKWARD": "backward"
+                },
+                "inputs": {
+                    "NUM": {
+                        "opcode": "math_integer",
+                        "fields": {
+                            "NUM": "1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_costumenumbername",
+                "fields": {
+                    "NUMBER_NAME": "number"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_backdropnumbername",
+                "fields": {
+                    "NUMBER_NAME": "name"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_size"
+            }
+        ],
+        [
+            {
+                "opcode": "looks_costumenumbername",
+                "fields": {
+                    "NUMBER_NAME": "name"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "looks_backdropnumbername",
+                "fields": {
+                    "NUMBER_NAME": "number"
+                }
+            }
+        ]
+    ]
+}

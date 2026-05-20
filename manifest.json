@@ -1,0 +1,66 @@
+{
+    "manifest_version": 3,
+    "name": "Scratch HUD Coach",
+    "version": "0.1.0",
+    "description": "Scratch 3 에디터용 HUD: 즉시 도움말, 체크리스트, 질문 전 자기점검",
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "storage",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://scratch.mit.edu/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://scratch.mit.edu/projects/*/editor*",
+                "https://scratch.mit.edu/projects/create*"
+            ],
+            "js": [
+                "content/parser.js",
+                "content/content.js"
+            ],
+            "css": [
+                "content/hud.css"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "background": {
+        "service_worker": "background/service_worker.js",
+        "type": "module"
+    },
+    "action": {
+        "default_title": "Scratch HUD Coach",
+        "default_popup": "popup/popup.html"
+    },
+    "commands": {
+        "prepare-question": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Y",
+                "mac": "Command+Shift+Y"
+            },
+            "description": "질문 전 자기점검 카드 열기"
+        },
+        "toggle-hud": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+U",
+                "mac": "Command+Shift+U"
+            },
+            "description": "HUD 패널 토글"
+        }
+    },
+    "options_page": "options/options.html",
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "content/page_bridge.js"
+            ],
+            "matches": [
+                "https://scratch.mit.edu/*"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,102 @@
+{
+    "Sprite1": [
+        [
+            {
+                "opcode": "control_wait",
+                "inputs": {
+                    "DURATION": {
+                        "opcode": "math_positive_number",
+                        "fields": {
+                            "NUM": "1"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "control_repeat",
+                "inputs": {
+                    "TIMES": {
+                        "opcode": "math_whole_number",
+                        "fields": {
+                            "NUM": "10"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "control_forever"
+            }
+        ],
+        [
+            {
+                "opcode": "control_if"
+            }
+        ],
+        [
+            {
+                "opcode": "control_if_else"
+            }
+        ],
+        [
+            {
+                "opcode": "control_wait_until"
+            }
+        ],
+        [
+            {
+                "opcode": "control_repeat_until"
+            }
+        ],
+        [
+            {
+                "opcode": "control_stop",
+                "fields": {
+                    "STOP_OPTION": "all"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "control_stop",
+                "fields": {
+                    "STOP_OPTION": "this script"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "control_stop",
+                "fields": {
+                    "STOP_OPTION": "other scripts in sprite"
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "control_start_as_clone"
+            }
+        ],
+        [
+            {
+                "opcode": "control_create_clone_of",
+                "inputs": {
+                    "CLONE_OPTION": {
+                        "opcode": "control_create_clone_of_menu",
+                        "fields": {
+                            "CLONE_OPTION": "_myself_"
+                        }
+                    }
+                }
+            }
+        ],
+        [
+            {
+                "opcode": "control_delete_this_clone"
+            }
+        ]
+    ]
+}
