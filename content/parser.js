@@ -1,7 +1,15 @@
 // content/parser.js
 class ScratchParser {
-  constructor(blocksDict) {
+  constructor(blocksDict, commentsDict) {
     this.blocks = blocksDict || {};
+    this.comments = commentsDict || {};
+    
+    this.commentsByBlock = {};
+    for (const [id, comment] of Object.entries(this.comments)) {
+      if (comment.blockId) {
+        this.commentsByBlock[comment.blockId] = comment;
+      }
+    }
   }
 
   // =========================================================
@@ -40,6 +48,11 @@ class ScratchParser {
     const norm = {
       opcode: block.opcode
     };
+
+    const associatedComment = this.commentsByBlock[block.id];
+    if (associatedComment) {
+      norm.comment = associatedComment.text;
+    }
 
     // 필드 파싱 (예: 변수 이름, 드롭다운 값 등)
     if (block.fields && Object.keys(block.fields).length > 0) {
@@ -200,6 +213,11 @@ class ScratchParser {
         x: 0,
         y: 0,
       };
+
+      // comment 처리
+      if (blockDef.comment) {
+        flatBlocks[id].comment = blockDef.comment;
+      }
 
       // fields 처리
       if (blockDef.fields) {

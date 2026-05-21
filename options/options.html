@@ -6,18 +6,30 @@
   <style>
     body { font-family: system-ui, sans-serif; padding: 16px; max-width: 720px; }
     textarea { width: 100%; min-height: 160px; }
-    .row { display: grid; gap: 8px; }
-    .btn { padding: 8px 10px; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer; }
+    .row { display: grid; gap: 8px; margin-bottom: 16px; }
+    .btn { padding: 8px 10px; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer; background: #f8fafc; }
+    .btn:hover { background: #f1f5f9; }
+    select { padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 14px; }
   </style>
 </head>
 <body>
   <h2 style="margin-top:0">Scratch HUD Coach – 옵션</h2>
-  <p>※ 1차 버전에선 서버 없이 기본 체크리스트만 사용합니다. 과제 JSON을 붙여넣어 저장하면 이후 버전에서 확장할 수 있어요.</p>
+  
   <div class="row">
-    <label>과제 JSON</label>
-    <textarea id="assign-json" placeholder='{"required": ["event_whenflagclicked", "control_forever"]}'></textarea>
-    <button class="btn" id="save">저장</button>
+    <label style="font-weight: bold;">주석 스캐폴딩 난이도 설정</label>
+    <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0;">AI 프롬프트 생성 시 사용될 주석의 난이도(비계 설정) 수준을 지정합니다.</p>
+    <select id="comment-level">
+      <option value="basic">기초 단계 (상위 스캐폴딩 - 직접 지시형)</option>
+      <option value="advanced">심화 단계 (하위 스캐폴딩 - 간접 미션형)</option>
+    </select>
   </div>
+
+  <div class="row" style="margin-top: 24px;">
+    <label style="font-weight: bold;">과제 JSON</label>
+    <textarea id="assign-json" placeholder='{"required": ["event_whenflagclicked", "control_forever"]}'></textarea>
+  </div>
+
+  <button class="btn" id="save" style="margin-top: 8px;">저장</button>
 
   <script src="options.js"></script>
 </body>

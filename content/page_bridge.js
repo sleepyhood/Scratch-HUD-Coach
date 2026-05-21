@@ -41,6 +41,7 @@
       let hasLoop = false;
       let hasMotion = false;
       const rawBlocksByTarget = {};
+      const rawCommentsByTarget = {};
 
       if (vm.runtime && vm.runtime.targets) {
         vm.runtime.targets.forEach(target => {
@@ -87,6 +88,9 @@
           if (Object.keys(targetBlocks).length > 0) {
             rawBlocksByTarget[targetName] = targetBlocks;
           }
+          if (target.comments && Object.keys(target.comments).length > 0) {
+            rawCommentsByTarget[targetName] = { ...target.comments };
+          }
         });
       }
 
@@ -102,7 +106,8 @@
             usesVariableOp,
             hasLoop,
             hasMotion,
-            rawBlocksByTarget
+            rawBlocksByTarget,
+            rawCommentsByTarget
           },
         },
         "*"
@@ -153,6 +158,10 @@
     let xml = `<block type="${_escXml(b.opcode)}" id="${_escXml(id)}"`;
     if (b.topLevel) xml += ` x="${b.x || 0}" y="${b.y || 0}"`;
     xml += '>';
+
+    if (b.comment) {
+      xml += `<comment pinned="false" w="250" h="120">${_escXml(b.comment)}</comment>`;
+    }
 
     // fields
     for (const [fn, fobj] of Object.entries(b.fields || {})) {
@@ -283,6 +292,19 @@
       let count = 0;
       for (const [id, block] of Object.entries(newBlocks)) {
         existingBlocks[id] = block;
+        if (block.comment && target.comments) {
+          const commentId = id + '_comment';
+          target.comments[commentId] = {
+            id: commentId,
+            blockId: id,
+            x: (block.x || 0) + 200,
+            y: block.y || 0,
+            width: 250,
+            height: 120,
+            minimized: false,
+            text: block.comment
+          };
+        }
         count++;
       }
 
