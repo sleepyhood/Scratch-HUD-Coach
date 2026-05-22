@@ -4,13 +4,128 @@
   <meta charset="utf-8">
   <title>Scratch HUD Coach</title>
   <style>
-    body { font-family: system-ui, sans-serif; min-width: 240px; padding: 12px; }
-    button { padding: 8px 10px; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer; }
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+    
+    body {
+      font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      width: 280px;
+      padding: 16px;
+      margin: 0;
+      background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #d946ef 100%);
+      color: #0f172a;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .glass-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(20px) saturate(190%);
+      -webkit-backdrop-filter: blur(20px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 20px;
+      padding: 20px 16px;
+      box-shadow: 
+        0 10px 30px 0 rgba(31, 38, 135, 0.2),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-sizing: border-box;
+      animation: cardAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    
+    @keyframes cardAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.92) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    
+    .logo-container {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+      color: white;
+      font-size: 22px;
+      font-weight: 800;
+      animation: logoPulse 2s infinite ease-in-out;
+    }
+    
+    @keyframes logoPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    h3 {
+      margin: 0 0 6px 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: #1e1b4b;
+      letter-spacing: -0.02em;
+    }
+    
+    p {
+      font-size: 12px;
+      color: #475569;
+      margin: 0 0 20px 0;
+      line-height: 1.45;
+      font-weight: 400;
+    }
+    
+    button {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, filter 0.2s;
+      width: 100%;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.45);
+      filter: brightness(1.05);
+    }
+    
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      filter: brightness(0.95);
+    }
   </style>
 </head>
 <body>
-  <h3 style="margin-top:0">HUD Coach</h3>
-  <button id="btn-toggle">HUD 토글</button>
+  <div class="glass-card">
+    <div class="logo-container">🧩</div>
+    <h3>Scratch HUD Coach</h3>
+    <p>스크래치 화면 위에 코칭 보조 HUD 창을 열어 가이드를 작성하세요.</p>
+    <button id="btn-toggle">🚀 HUD 토글</button>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>

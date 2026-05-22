@@ -1,0 +1,92 @@
+{
+  "Sprite1": [
+    [
+      {
+        "opcode": "procedures_definition",
+        "inputs": {
+          "custom_block": {
+            "opcode": "procedures_prototype"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "procedures_definition",
+        "inputs": {
+          "custom_block": {
+            "opcode": "procedures_prototype",
+            "inputs": {
+              "(w;}9e6^9o9n(=Th$gzo": {
+                "opcode": "argument_reporter_string_number",
+                "fields": {
+                  "VALUE": "number or text"
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "procedures_definition",
+        "inputs": {
+          "custom_block": {
+            "opcode": "procedures_prototype",
+            "inputs": {
+              "RCA@1Mka~Q]kL8G@fNy}": {
+                "opcode": "argument_reporter_boolean",
+                "fields": {
+                  "VALUE": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "procedures_definition",
+        "inputs": {
+          "custom_block": {
+            "opcode": "procedures_prototype"
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "procedures_definition",
+        "inputs": {
+          "custom_block": {
+            "opcode": "procedures_prototype",
+            "inputs": {
+              ":V_5HU:GuxASxiEs9|Q*": {
+                "opcode": "argument_reporter_string_number",
+                "fields": {
+                  "VALUE": "number or text"
+                }
+              },
+              "@jE^!HJv}A55K$vyKeg@": {
+                "opcode": "argument_reporter_boolean",
+                "fields": {
+                  "VALUE": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "argument_reporter_string_number",
+        "fields": {
+          "VALUE": "number or text"
+        }
+      }
+    ]
+  ]
+}

@@ -1,0 +1,224 @@
+{
+  "Sprite1": [
+    [
+      {
+        "opcode": "data_variable",
+        "fields": {
+          "VARIABLE": "나의 변수"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_setvariableto",
+        "fields": {
+          "VARIABLE": "나의 변수"
+        },
+        "inputs": {
+          "VALUE": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "0"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_changevariableby",
+        "fields": {
+          "VARIABLE": "나의 변수"
+        },
+        "inputs": {
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_showvariable",
+        "fields": {
+          "VARIABLE": "나의 변수"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_hidevariable",
+        "fields": {
+          "VARIABLE": "나의 변수"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_listcontents",
+        "fields": {
+          "LIST": "나의  리스트"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_addtolist",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "ITEM": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "항목"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_deleteoflist",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "INDEX": {
+            "opcode": "math_integer",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_deletealloflist",
+        "fields": {
+          "LIST": "나의  리스트"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_insertatlist",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "ITEM": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "항목"
+            }
+          },
+          "INDEX": {
+            "opcode": "math_integer",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_replaceitemoflist",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "INDEX": {
+            "opcode": "math_integer",
+            "fields": {
+              "NUM": "1"
+            }
+          },
+          "ITEM": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "항목"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_itemoflist",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "INDEX": {
+            "opcode": "math_integer",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_itemnumoflist",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "ITEM": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "항목"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_lengthoflist",
+        "fields": {
+          "LIST": "나의  리스트"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_listcontainsitem",
+        "fields": {
+          "LIST": "나의  리스트"
+        },
+        "inputs": {
+          "ITEM": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "항목"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_showlist",
+        "fields": {
+          "LIST": "나의  리스트"
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "data_hidelist",
+        "fields": {
+          "LIST": "나의  리스트"
+        }
+      }
+    ]
+  ]
+}

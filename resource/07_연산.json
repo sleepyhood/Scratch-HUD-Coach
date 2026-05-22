@@ -1,0 +1,497 @@
+{
+  "Sprite1": [
+    [
+      {
+        "opcode": "operator_add",
+        "inputs": {
+          "NUM1": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          },
+          "NUM2": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_subtract",
+        "inputs": {
+          "NUM1": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          },
+          "NUM2": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_multiply",
+        "inputs": {
+          "NUM1": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          },
+          "NUM2": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_divide",
+        "inputs": {
+          "NUM1": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          },
+          "NUM2": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_random",
+        "inputs": {
+          "FROM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "1"
+            }
+          },
+          "TO": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "10"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_gt",
+        "inputs": {
+          "OPERAND1": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": ""
+            }
+          },
+          "OPERAND2": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_lt",
+        "inputs": {
+          "OPERAND1": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": ""
+            }
+          },
+          "OPERAND2": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_equals",
+        "inputs": {
+          "OPERAND1": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": ""
+            }
+          },
+          "OPERAND2": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_and"
+      }
+    ],
+    [
+      {
+        "opcode": "operator_or"
+      }
+    ],
+    [
+      {
+        "opcode": "operator_not"
+      }
+    ],
+    [
+      {
+        "opcode": "operator_join",
+        "inputs": {
+          "STRING1": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "가위 "
+            }
+          },
+          "STRING2": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "나무"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_letter_of",
+        "inputs": {
+          "STRING": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "가위"
+            }
+          },
+          "LETTER": {
+            "opcode": "math_whole_number",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_length",
+        "inputs": {
+          "STRING": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "가위"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_contains",
+        "inputs": {
+          "STRING1": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "가위"
+            }
+          },
+          "STRING2": {
+            "opcode": "text",
+            "fields": {
+              "TEXT": "가"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mod",
+        "inputs": {
+          "NUM1": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          },
+          "NUM2": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_round",
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "abs"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "floor"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "ceiling"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "sqrt"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "sin"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "cos"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "tan"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "asin"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "acos"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "atan"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "ln"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "log"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "e ^"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "operator_mathop",
+        "fields": {
+          "OPERATOR": "10 ^"
+        },
+        "inputs": {
+          "NUM": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": ""
+            }
+          }
+        }
+      }
+    ]
+  ]
+}

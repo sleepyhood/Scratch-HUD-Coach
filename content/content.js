@@ -19,33 +19,42 @@
   root.innerHTML = `
     <div id="hud-coach-header">
       <div id="hud-coach-title">Scratch HUD Coach</div>
+      <button class="hud-close-btn" id="btn-hud-close" title="HUD 닫기">&times;</button>
     </div>
     <div id="hud-coach-body">
 
-      <div class="hud-section" style="margin-top: 5px;">
-        <h4>1단계: 원본 JSON (사전형)</h4>
-        <div class="hud-card" style="padding: 5px;">
-          <textarea id="live-json-view" style="width:100%; height:100px; font-family:monospace; font-size:11px; white-space:pre; resize:vertical; background:#f9f9f9; border:1px solid #ccc; border-radius:4px;" readonly placeholder="현재 화면에 배치된 스크래치 블록의 원본 구조"></textarea>
+      <div class="hud-section" style="margin-top: 4px;">
+        <h4>🔍 1단계: 원본 JSON (사전형)</h4>
+        <div class="hud-card">
+          <textarea id="live-json-view" readonly placeholder="현재 화면에 배치된 스크래치 블록의 원본 구조"></textarea>
         </div>
       </div>
 
-      <div class="hud-section" style="margin-top: 10px;">
-        <h4>2단계: 정규화 파싱(배열형)</h4>
-        <div class="hud-card" style="padding: 5px;">
-          <textarea id="live-parsed-view" style="width:100%; height:120px; font-family:monospace; font-size:11px; white-space:pre; resize:vertical; background:#eef2ff; border:1px solid #c7d2fe; border-radius:4px; color:#312e81;" readonly placeholder="정규화된 논리적 시퀀스 및 주석(comment)이 나타납니다."></textarea>
+      <div class="hud-section">
+        <h4>⚡ 2단계: 정규화 파싱(배열형)</h4>
+        <div class="hud-card">
+          <textarea id="live-parsed-view" readonly placeholder="정규화된 논리적 시퀀스 및 주석(comment)이 나타납니다."></textarea>
         </div>
       </div>
 
-      <div class="hud-section" style="margin-top: 15px;">
-        <h4 style="color: #4f46e5; display: flex; align-items: center; justify-content: space-between;">
-          <span>📝 AI 주석 가이드 생성기</span>
+      <div class="hud-section">
+        <h4 style="color: #4f46e5;">
+          <span>📝 3단계: AI 주석 가이드 생성기</span>
         </h4>
-        <div class="hud-card" style="padding: 10px; background: #fafafa; border-color: #d1d5db;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #e5e7eb;">
-            <span style="font-size: 12px; font-weight: 600; color: #4b5563;">가이드북 난이도</span>
-            <select id="hud-comment-level-select" style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid #d1d5db; background: white; cursor: pointer; color: #374151; font-weight: 500; outline: none;">
+        <div class="hud-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.06);">
+            <span style="font-size: 12px; font-weight: 600; color: #475569;">가이드북 난이도</span>
+            <select id="hud-comment-level-select" class="hud-select">
               <option value="basic">기초 단계 (직접 지시)</option>
               <option value="advanced">심화 단계 (간접 미션)</option>
+            </select>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.06);">
+            <span style="font-size: 12px; font-weight: 600; color: #475569;">가이드북 스타일</span>
+            <select id="hud-comment-style-select" class="hud-select">
+              <option value="text">텍스트 리스트 (기본형)</option>
+              <option value="pseudoblock">유사 블록 구조 (시각화형)</option>
             </select>
           </div>
 
@@ -57,14 +66,14 @@
               🚀 주석 가이드 생성
             </button>
           </div>
-          <div id="ai-status" style="font-size:11px; margin-top: 8px; padding: 6px; border-radius:4px; display:none; line-height: 1.4;"></div>
+          <div id="ai-status"></div>
         </div>
       </div>
 
-      <div class="hud-section" style="margin-top: 12px;">
-        <h4 style="color: #065f46; margin-bottom: 6px;">📄 주석 가이드 미리보기</h4>
-        <div class="hud-card" style="padding: 8px; background: #f0fdf4; border-color: #bbf7d0;">
-          <div style="font-size:11px; color:#065f46; margin-bottom:6px; line-height:1.5;">
+      <div class="hud-section">
+        <h4 style="color: #065f46; margin-bottom: 6px;">📄 4단계: 주석 가이드 미리보기</h4>
+        <div class="hud-card">
+          <div style="font-size:11px; color:#065f46; margin-bottom:6px; line-height:1.5; font-weight: 500;">
             생성된 가이드를 확인하고, 학생용 자료로 복사하세요.
           </div>
           <textarea
@@ -72,7 +81,7 @@
             placeholder="🚀 주석 가이드 생성 버튼을 누르면 여기에 결과가 표시됩니다."
             readonly
           ></textarea>
-          <div style="margin-top:6px;">
+          <div style="margin-top:8px;">
             <button class="ai-btn ai-btn-guide-copy" id="btn-copy-guide">
               📋 가이드 복사
             </button>
@@ -96,6 +105,8 @@
   toggleBtn.addEventListener("click", () =>
     root.classList.contains("open") ? closeHUD() : openHUD()
   );
+  
+  root.querySelector('#btn-hud-close').addEventListener('click', closeHUD);
 
 
   let lastSnapshot = null;
@@ -152,16 +163,20 @@
       root.classList.contains("open") ? closeHUD() : openHUD();
   });
 
-  // Load initial comment level & bind change event
+  // Load initial settings & bind change events
   (async function initDifficultySettings() {
     try {
-      const data = await chrome.storage.sync.get("hud_comment_level");
-      const selectEl = root.querySelector("#hud-comment-level-select");
-      if (selectEl && data.hud_comment_level) {
-        selectEl.value = data.hud_comment_level;
+      const data = await chrome.storage.sync.get(["hud_comment_level", "hud_comment_style"]);
+      const selectLevel = root.querySelector("#hud-comment-level-select");
+      if (selectLevel && data.hud_comment_level) {
+        selectLevel.value = data.hud_comment_level;
+      }
+      const selectStyle = root.querySelector("#hud-comment-style-select");
+      if (selectStyle && data.hud_comment_style) {
+        selectStyle.value = data.hud_comment_style;
       }
     } catch (e) {
-      console.warn("Scratch HUD Coach: Failed to load difficulty level from storage", e);
+      console.warn("Scratch HUD Coach: Failed to load settings from storage", e);
     }
   })();
 
@@ -176,12 +191,31 @@
     });
   }
 
+  const styleSelect = root.querySelector("#hud-comment-style-select");
+  if (styleSelect) {
+    styleSelect.addEventListener("change", async (e) => {
+      try {
+        await chrome.storage.sync.set({ hud_comment_style: e.target.value });
+      } catch (err) {
+        console.error("Scratch HUD Coach: Failed to save style settings", err);
+      }
+    });
+  }
+
   // Sync when storage changes
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === "sync" && changes.hud_comment_level) {
-      const selectEl = root.querySelector("#hud-comment-level-select");
-      if (selectEl) {
-        selectEl.value = changes.hud_comment_level.newValue;
+    if (areaName === "sync") {
+      if (changes.hud_comment_level) {
+        const selectEl = root.querySelector("#hud-comment-level-select");
+        if (selectEl) {
+          selectEl.value = changes.hud_comment_level.newValue;
+        }
+      }
+      if (changes.hud_comment_style) {
+        const selectEl = root.querySelector("#hud-comment-style-select");
+        if (selectEl) {
+          selectEl.value = changes.hud_comment_style.newValue;
+        }
       }
     }
   });
@@ -271,6 +305,71 @@
 ■ 불판
 1. 📥 [고기] 신호를 받았을 때 동작을 시작하도록 만듭니다.
 2. 🖱 마우스를 클릭하면 [고기 복제본]을 새로 만들고 실행을 멈추도록 합니다.`;
+
+  const BASIC_LEVEL_INSTRUCTION_PSEUDO =
+`기초 단계 (직접 지시형 - 유사 블록 구조)
+- 각 번호는 1~2줄 이내로 간결하게 작성합니다.
+- 블록 이름은 [ ] 안에 스크래치 화면 텍스트 그대로 씁니다.
+- 블록 설명은 "[블록이름] + 짧은 동작어" 형태의 나열형으로 작성합니다. (문장형 종결어 ❌)
+  예) 1. 🚩 [클릭했을 때] 가져오기   2. 📍 [x: 0 y: 0 (으)로 이동하기] 연결하기
+- 반복문이나 조건문(제어 블록)의 내부에 들어가는 하위 블록들은 평면적으로 나열하지 말고, **반드시 줄바꿈 후 상자 그리기 문자(┌─, ├─, └─, │)를 사용하여 실제 블록 조립 형태의 시각적 계층(depth)을 표현**합니다.
+  예)
+  ┌─ 🔁 [무한 반복하기]
+  │    │
+  │    ├─ ❓ [만약 <위쪽 화살표 키를 눌렀는가?> 라면]
+  │    │    │
+  │    │    └─ 🔄 [왼쪽으로 10 도 돌기]
+  │    └─ ...
+- 이모지로 블록 종류를 시각적으로 구분해도 됩니다. (예: 🚩 이벤트, 📍 위치, 🔁 반복, ❓ 조건, 📢 신호)
+- 위치·초기값·신호명 같은 핵심 숫자와 텍스트는 반드시 명시합니다.`;
+
+  const BASIC_LEVEL_EXAMPLE_PSEUDO =
+`[1단계: 고양이 출발 준비]
+목표: 🚩 깃발을 누르면 고양이가 정해진 자리에 서고 움직입니다.
+
+■ 고양이
+┌─ 🚩 [클릭했을 때]
+├─ 📍 [x: (-150) y: (-100) (으)로 이동하기]
+└─ 🔁 [무한 반복하기]
+     │
+     ├─ ➡ [50 만큼 움직이기]
+     └─ ❓ [만약 <벽에 닿았는가?> 라면]
+          │
+          └─ 📍 [벽에 닿으면 튕기기]`;
+
+  const ADVANCED_LEVEL_INSTRUCTION_PSEUDO =
+`심화 단계 (간접 미션형 - 유사 블록 구조)
+- 블록 이름을 직접적으로 지시하지 않고, 목적이나 기능 중심의 **자연스러운 문장형 종결어(~해보세요, ~합니다, ~만듭니다 등)**로 작성합니다. 나열형 종결어는 사용하지 마세요.
+- 반복문이나 조건문(제어 블록) 등 복잡한 논리 구조는 학생이 스스로 설계하도록 유도합니다.
+- 하위 블록들은 평면적으로 나열하지 말고, **반드시 줄바꿈 후 상자 그리기 문자(┌─, ├─, └─, │)를 사용하여 실제 블록 조립 형태의 시각적 계층(depth)을 표현**합니다.
+  예)
+  ┌─ 🔁 아래의 조건과 행동들이 게임이 끝날 때까지 멈추지 않고 계속 작동하게 해보세요.
+  │    │
+  │    └─ ❓ 키보드의 위쪽 화살표 키를 눌렀는지 확인하는 조건을 만듭니다.
+  │         │
+  │         └─ 조건이 맞으면 마법봉이 왼쪽으로 10도씩 돌도록 만들어 보세요.
+- 이모지로 블록 기능을 시각적으로 구분해도 됩니다. (예: 🚩 이벤트, 📍 위치, 🔁 반복, ❓ 조건, 📢 신호)
+- 단, 아래 항목은 심화 단계에서도 구체적인 숫자·텍스트를 반드시 명시합니다:
+  · 초기 위치 (x, y 좌표) / 초기 크기·방향 / 대기 시간
+  · 조작 키 이름 / 신호명 / 변수 초기화 값`;
+
+  const ADVANCED_LEVEL_EXAMPLE_PSEUDO =
+`[3단계: 불판에 고기 올리기]
+목표: 접시를 클릭하면 불판 위에 고기가 새로 생겨나도록 합니다.
+
+■ 고기접시
+┌─ 🔁 마우스 포인터에 닿았는지와 마우스를 클릭했는지를 계속해서 감시하도록 구조를 설계해 보세요.
+│    │
+│    └─ 조건이 만족되면 다른 스프라이트들이 알 수 있도록 [고기] 신호를 보냅니다.
+
+---
+
+[3단계: 불판에 고기 올리기]
+목표: 불판이 신호를 받아 고기 복제본을 만듭니다.
+
+■ 불판
+┌─ 📥 [고기] 신호를 받았을 때 동작을 시작하도록 만듭니다.
+└─ 🖱 마우스를 클릭하면 [고기 복제본]을 새로 만들고 실행을 멈추도록 합니다.`;
 
   const PROMPT_TEMPLATE =
 `당신은 스크래치 3.0(Scratch 3.0) 전문 코칭 AI이자 교육 자료 제작자입니다.
@@ -373,9 +472,22 @@
     const selectEl = root.querySelector("#hud-comment-level-select");
     const level = selectEl ? selectEl.value : "basic";
 
-    const levelStr = level === "basic" ? "기초 단계 (직접 지시형)" : "심화 단계 (간접 미션형)";
-    const levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION : ADVANCED_LEVEL_INSTRUCTION;
-    const levelExample = level === "basic" ? BASIC_LEVEL_EXAMPLE : ADVANCED_LEVEL_EXAMPLE;
+    const selectStyleEl = root.querySelector("#hud-comment-style-select");
+    const style = selectStyleEl ? selectStyleEl.value : "text";
+
+    let levelStr = "";
+    let levelInst = "";
+    let levelExample = "";
+
+    if (style === "pseudoblock") {
+      levelStr = level === "basic" ? "기초 단계 (직접 지시형 - 유사 블록 구조)" : "심화 단계 (간접 미션형 - 유사 블록 구조)";
+      levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION_PSEUDO : ADVANCED_LEVEL_INSTRUCTION_PSEUDO;
+      levelExample = level === "basic" ? BASIC_LEVEL_EXAMPLE_PSEUDO : ADVANCED_LEVEL_EXAMPLE_PSEUDO;
+    } else {
+      levelStr = level === "basic" ? "기초 단계 (직접 지시형)" : "심화 단계 (간접 미션형)";
+      levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION : ADVANCED_LEVEL_INSTRUCTION;
+      levelExample = level === "basic" ? BASIC_LEVEL_EXAMPLE : ADVANCED_LEVEL_EXAMPLE;
+    }
 
     const promptStr = PROMPT_TEMPLATE
       .replace('{USER_SELECTED_LEVEL}', levelStr)
@@ -625,8 +737,8 @@
           lines.push('');
           lines.push('■ ' + targetName);
 
-          // 재귀적으로 블록 시퀀스와 중첩 블록(SUBSTACK 등)을 파싱하는 함수
-          function renderBlockSequence(seq, depth) {
+          // 재귀적으로 블록 시퀀스와 중첩 블록(SUBSTACK 등)을 파싱하는 함수 (텍스트 스타일용)
+          function renderBlockSequenceText(seq, depth) {
             if (!Array.isArray(seq)) return;
             let indentStr = '';
             for(let i=0; i<depth; i++) indentStr += '  ';
@@ -639,7 +751,7 @@
                 let lineStr = '';
                 if (depth === 0) {
                   lineStr = stepIndex + '. ' + filled;
-                  stepIndex++; // 최상위만 번호 증가 (그러나 이 로직에서 stepIndex는 각 스크립트 묶음에 대해 쓰이므로, 내부 아이템 번호를 따로 써야 함)
+                  stepIndex++;
                 } else {
                   lineStr = indentStr + '- ' + filled;
                 }
@@ -648,23 +760,21 @@
               
               // 중첩된 SUBSTACK이나 CONDITION 파싱
               if (block.inputs) {
-                // 특정 순서대로 처리(조건 -> 본문 -> else본문)
                 if (block.inputs.CONDITION) {
-                  renderBlockSequence(block.inputs.CONDITION, depth + 1);
+                  renderBlockSequenceText(block.inputs.CONDITION, depth + 1);
                 }
                 if (block.inputs.SUBSTACK) {
-                  renderBlockSequence(block.inputs.SUBSTACK, depth + 1);
+                  renderBlockSequenceText(block.inputs.SUBSTACK, depth + 1);
                 }
-                if (block.inputs.SUBSTACK2) { // if_else 구조
-                  renderBlockSequence(block.inputs.SUBSTACK2, depth + 1);
+                if (block.inputs.SUBSTACK2) {
+                  renderBlockSequenceText(block.inputs.SUBSTACK2, depth + 1);
                 }
               }
             }
           }
 
           let itemIndex = 1;
-          // 최상위 depth 처리를 위한 로컬 재귀 함수 (itemIndex 유지)
-          function renderRootSequence(seq) {
+          function renderRootSequenceText(seq) {
             for (const block of seq) {
               if (!block || !block.opcode) continue;
               const tmpl = labelMap[block.opcode];
@@ -674,14 +784,103 @@
                 itemIndex++;
               }
               if (block.inputs) {
-                if (block.inputs.CONDITION) renderBlockSequence(block.inputs.CONDITION, 1);
-                if (block.inputs.SUBSTACK) renderBlockSequence(block.inputs.SUBSTACK, 1);
-                if (block.inputs.SUBSTACK2) renderBlockSequence(block.inputs.SUBSTACK2, 1);
+                if (block.inputs.CONDITION) renderBlockSequenceText(block.inputs.CONDITION, 1);
+                if (block.inputs.SUBSTACK) renderBlockSequenceText(block.inputs.SUBSTACK, 1);
+                if (block.inputs.SUBSTACK2) renderBlockSequenceText(block.inputs.SUBSTACK2, 1);
               }
             }
           }
 
-          renderRootSequence(script);
+          // 유사 블록 형태 렌더링 함수
+          function renderBlockSequencePseudo(seq, depth, parentHasNextList) {
+            if (!Array.isArray(seq)) return;
+            
+            const validItems = seq.filter(item => item && item.block && item.block.opcode && labelMap[item.block.opcode]);
+            
+            for (let i = 0; i < validItems.length; i++) {
+              const item = validItems[i];
+              const block = item.block;
+              const typeLabel = item.typeLabel || '';
+              const tmpl = labelMap[block.opcode];
+              const filled = fillOpcodeTemplate(tmpl, block);
+              
+              const isLast = (i === validItems.length - 1);
+              
+              // Build indentation prefix
+              let indent = '';
+              for (let d = 0; d < depth; d++) {
+                indent += parentHasNextList[d] ? '│    ' : '     ';
+              }
+              indent += isLast ? '└─ ' : '├─ ';
+              
+              if (depth === 0) {
+                const rootPrefix = (validItems.length === 1) ? '└─ ' : (i === 0 ? '┌─ ' : (isLast ? '└─ ' : '├─ '));
+                lines.push(rootPrefix + typeLabel + filled);
+              } else {
+                lines.push(indent + typeLabel + filled);
+              }
+              
+              // Collect all children for this block
+              const children = [];
+              if (block.inputs) {
+                const cond = block.inputs.CONDITION;
+                if (Array.isArray(cond)) {
+                  cond.filter(b => b && b.opcode && labelMap[b.opcode]).forEach(b => {
+                    children.push({ block: b, typeLabel: '[조건] ' });
+                  });
+                }
+                
+                const sub = block.inputs.SUBSTACK;
+                const sub2 = block.inputs.SUBSTACK2;
+                const hasSub2 = Array.isArray(sub2) && sub2.some(b => b && b.opcode && labelMap[b.opcode]);
+                
+                if (Array.isArray(sub)) {
+                  sub.filter(b => b && b.opcode && labelMap[b.opcode]).forEach(b => {
+                    const label = hasSub2 ? '[참일 때] ' : '[실행] ';
+                    children.push({ block: b, typeLabel: label });
+                  });
+                }
+                
+                if (Array.isArray(sub2)) {
+                  sub2.filter(b => b && b.opcode && labelMap[b.opcode]).forEach(b => {
+                    children.push({ block: b, typeLabel: '[아니면] ' });
+                  });
+                }
+              }
+              
+              if (children.length > 0) {
+                let nextLineIndent = '';
+                for (let d = 0; d < depth; d++) {
+                  nextLineIndent += parentHasNextList[d] ? '│    ' : '     ';
+                }
+                if (depth === 0) {
+                  nextLineIndent += (validItems.length > 1 && !isLast) ? '│    ' : '     ';
+                } else {
+                  nextLineIndent += isLast ? '     ' : '│    ';
+                }
+                
+                lines.push(nextLineIndent + '│');
+                
+                const nextHasNextList = [...parentHasNextList];
+                if (depth === 0) {
+                  nextHasNextList.push(validItems.length > 1 && !isLast);
+                } else {
+                  nextHasNextList.push(!isLast);
+                }
+                
+                renderBlockSequencePseudo(children, depth + 1, nextHasNextList);
+              }
+            }
+          }
+
+          const selectStyleEl = root.querySelector("#hud-comment-style-select");
+          const style = selectStyleEl ? selectStyleEl.value : "text";
+
+          if (style === "pseudoblock") {
+            renderBlockSequencePseudo(script.map(b => ({ block: b, typeLabel: '' })), 0, []);
+          } else {
+            renderRootSequenceText(script);
+          }
 
           lines.push('');
           lines.push('---');

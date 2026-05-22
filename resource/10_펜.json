@@ -1,0 +1,215 @@
+{
+  "Sprite1": [
+    [
+      {
+        "opcode": "pen_clear"
+      }
+    ],
+    [
+      {
+        "opcode": "pen_stamp"
+      }
+    ],
+    [
+      {
+        "opcode": "pen_penDown"
+      }
+    ],
+    [
+      {
+        "opcode": "pen_penUp"
+      }
+    ],
+    [
+      {
+        "opcode": "pen_setPenColorToColor",
+        "inputs": {
+          "COLOR": {
+            "opcode": "colour_picker",
+            "fields": {
+              "COLOUR": "#68a991"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_changePenColorParamBy",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "color"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "10"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_setPenColorParamTo",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "color"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_changePenSizeBy",
+        "inputs": {
+          "SIZE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_setPenSizeTo",
+        "inputs": {
+          "SIZE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "1"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_setPenColorParamTo",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "saturation"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_setPenColorParamTo",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "brightness"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_setPenColorParamTo",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "transparency"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "50"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_changePenColorParamBy",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "saturation"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "10"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_changePenColorParamBy",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "brightness"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "10"
+            }
+          }
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "pen_changePenColorParamBy",
+        "inputs": {
+          "COLOR_PARAM": {
+            "opcode": "pen_menu_colorParam",
+            "fields": {
+              "colorParam": "transparency"
+            }
+          },
+          "VALUE": {
+            "opcode": "math_number",
+            "fields": {
+              "NUM": "10"
+            }
+          }
+        }
+      }
+    ]
+  ]
+}

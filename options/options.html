@@ -4,32 +4,164 @@
   <meta charset="utf-8">
   <title>HUD Coach 옵션</title>
   <style>
-    body { font-family: system-ui, sans-serif; padding: 16px; max-width: 720px; }
-    textarea { width: 100%; min-height: 160px; }
-    .row { display: grid; gap: 8px; margin-bottom: 16px; }
-    .btn { padding: 8px 10px; border-radius: 8px; border: 1px solid #e5e7eb; cursor: pointer; background: #f8fafc; }
-    .btn:hover { background: #f1f5f9; }
-    select { padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 14px; }
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: rgba(0, 0, 0, 0.08);
+    }
+    
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      padding: 32px 16px;
+      max-width: 640px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #eef2ff 0%, #f1f5f9 100%);
+      color: var(--text);
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    
+    h2 {
+      font-weight: 800;
+      font-size: 24px;
+      color: #1e1b4b;
+      margin-top: 0;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    label {
+      font-weight: 700;
+      font-size: 14px;
+      color: #334155;
+    }
+    
+    p.description {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 6px 0;
+      line-height: 1.4;
+    }
+    
+    select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.8);
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--text);
+      box-sizing: border-box;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+      transition: transform 0.1s, box-shadow 0.2s, filter 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+      filter: brightness(1.05);
+    }
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25);
+      filter: brightness(0.95);
+    }
   </style>
 </head>
 <body>
-  <h2 style="margin-top:0">Scratch HUD Coach – 옵션</h2>
+  <h2>⚙️ Scratch HUD Coach – 설정</h2>
   
-  <div class="row">
-    <label style="font-weight: bold;">주석 스캐폴딩 난이도 설정</label>
-    <p style="font-size: 13px; color: #64748b; margin: 0 0 8px 0;">AI 프롬프트 생성 시 사용될 주석의 난이도(비계 설정) 수준을 지정합니다.</p>
-    <select id="comment-level">
-      <option value="basic">기초 단계 (상위 스캐폴딩 - 직접 지시형)</option>
-      <option value="advanced">심화 단계 (하위 스캐폴딩 - 간접 미션형)</option>
-    </select>
+  <div class="card">
+    <div class="row">
+      <label for="comment-level">주석 스캐폴딩 난이도 설정</label>
+      <p class="description">AI 프롬프트 생성 시 사용될 주석의 난이도(비계 설정) 수준을 지정합니다.</p>
+      <select id="comment-level">
+        <option value="basic">기초 단계 (상위 스캐폴딩 - 직접 지시형)</option>
+        <option value="advanced">심화 단계 (하위 스캐폴딩 - 간접 미션형)</option>
+      </select>
+    </div>
   </div>
 
-  <div class="row" style="margin-top: 24px;">
-    <label style="font-weight: bold;">과제 JSON</label>
-    <textarea id="assign-json" placeholder='{"required": ["event_whenflagclicked", "control_forever"]}'></textarea>
+  <div class="card">
+    <div class="row">
+      <label for="comment-style">가이드북 스타일 설정</label>
+      <p class="description">AI 프롬프트 및 가이드 미리보기의 출력 형식을 결정합니다.</p>
+      <select id="comment-style">
+        <option value="text">텍스트 리스트 (기본형)</option>
+        <option value="pseudoblock">유사 블록 구조 (시각화형)</option>
+      </select>
+    </div>
   </div>
 
-  <button class="btn" id="save" style="margin-top: 8px;">저장</button>
+  <div class="card">
+    <div class="row">
+      <label for="assign-json">과제 JSON</label>
+      <p class="description">학생들이 준수해야 할 과제 요구사항의 블록 리스트 조건을 입력합니다.</p>
+      <textarea id="assign-json" placeholder='{"required": ["event_whenflagclicked", "control_forever"]}'></textarea>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end;">
+    <button class="btn" id="save">저장하기</button>
+  </div>
 
   <script src="options.js"></script>
 </body>
