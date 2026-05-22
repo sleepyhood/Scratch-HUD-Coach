@@ -21,7 +21,14 @@
       <div id="hud-coach-title">Scratch HUD Coach</div>
       <button class="hud-close-btn" id="btn-hud-close" title="HUD 닫기">&times;</button>
     </div>
+    <div id="hud-tab-nav">
+      <button class="hud-tab-btn active" data-tab="guidebook">📋 가이드북</button>
+      <button class="hud-tab-btn" data-tab="injector">⚡ 블록 주입기</button>
+    </div>
     <div id="hud-coach-body">
+
+      <!-- Tab 1: 가이드북 생성기 -->
+      <div id="hud-tab-content-guidebook" class="hud-tab-content active">
 
       <div class="hud-section" style="margin-top: 4px;">
         <h4>🔍 1단계: 원본 JSON (사전형)</h4>
@@ -89,6 +96,25 @@
         </div>
       </div>
 
+      </div> <!-- end of hud-tab-content-guidebook -->
+
+      <!-- Tab 2: 블록 주입기 -->
+      <div id="hud-tab-content-injector" class="hud-tab-content">
+        <div class="hud-section" style="margin-top: 4px;">
+          <h4 style="color: #4f46e5; margin-bottom: 8px;">🧩 레퍼런스 블록 템플릿</h4>
+          <div class="hud-card" style="padding: 12px;">
+            <div style="margin-bottom: 12px;">
+              <select id="hud-injector-category" class="hud-select" style="width: 100%;">
+                <option value="">카테고리 로딩 중...</option>
+              </select>
+            </div>
+            <div id="hud-injector-list" style="max-height: 250px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px;">
+              <!-- 블록 리스트 렌더링 영역 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   `;
   document.body.appendChild(root);
@@ -107,6 +133,20 @@
   );
   
   root.querySelector('#btn-hud-close').addEventListener('click', closeHUD);
+
+  // Tab switching logic
+  const tabBtns = root.querySelectorAll('.hud-tab-btn');
+  const tabContents = root.querySelectorAll('.hud-tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      const tabId = btn.getAttribute('data-tab');
+      root.querySelector(`#hud-tab-content-${tabId}`).classList.add('active');
+    });
+  });
 
 
   let lastSnapshot = null;

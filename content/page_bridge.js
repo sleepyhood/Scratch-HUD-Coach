@@ -43,6 +43,13 @@
       const rawBlocksByTarget = {};
       const rawCommentsByTarget = {};
 
+      let editingTargetName = null;
+      if (vm.editingTarget) {
+        if (vm.editingTarget.isStage) editingTargetName = "무대(배경)";
+        else if (vm.editingTarget.sprite && vm.editingTarget.sprite.name) editingTargetName = vm.editingTarget.sprite.name;
+        else if (vm.editingTarget.getName && typeof vm.editingTarget.getName === 'function') editingTargetName = vm.editingTarget.getName();
+      }
+
       if (vm.runtime && vm.runtime.targets) {
         vm.runtime.targets.forEach(target => {
           let targetName = "Unknown";
@@ -107,7 +114,8 @@
             hasLoop,
             hasMotion,
             rawBlocksByTarget,
-            rawCommentsByTarget
+            rawCommentsByTarget,
+            editingTargetName
           },
         },
         "*"
@@ -275,11 +283,19 @@
             const dom = SB.Xml.textToDom(xmlStr);
 
             // domToWorkspace: 기존 블록 유지하면서 XML의 블록들을 추가
-            SB.Xml.domToWorkspace(dom, ws);
+            const newBlockIds = SB.Xml.domToWorkspace(dom, ws);
+            
+            // 자동 스크롤 포커스
+            if (newBlockIds && newBlockIds.length > 0) {
+              const topBlock = ws.getBlockById(newBlockIds[0]);
+              if (topBlock) {
+                topBlock.select(); // 블록 선택 효과 및 자동 스크롤
+              }
+            }
 
             const nonShadowCount = Object.values(newBlocks).filter(b => b && !b.shadow).length;
             setTimeout(() => publishSnapshot(), 300);
-            return { ok: true, count: nonShadowCount, method: 'xml+domToWorkspace' };
+            return { ok: true, count: nonShadowCount, method: 'xml+domToWorkspace', fallback: payload.fallback, targetSprite: payload.targetSprite, currentSprite: payload.currentSprite };
           } catch (xmlErr) {
             console.warn('[HUD Coach] Strategy 1 (XML) 실패, Strategy 2로 폴백:', xmlErr);
           }
@@ -324,7 +340,7 @@
       } catch (e) { /* ignore */ }
 
       setTimeout(() => publishSnapshot(), 200);
-      return { ok: true, count, method: 'direct+emitUpdate' };
+      return { ok: true, count, method: 'direct+emitUpdate', fallback: payload.fallback, targetSprite: payload.targetSprite, currentSprite: payload.currentSprite };
 
     } catch (e) {
       console.error('[HUD Coach] applyBlocksToVM 오류:', e);
