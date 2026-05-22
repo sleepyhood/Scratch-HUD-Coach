@@ -213,72 +213,124 @@
 
   // ─────────────────────────────────────────────
   // 6) 가이드북 생성용 프롬프트 템플릿
-  //    (고정 주석 포맷 양식 + 난이도별 규칙 + 실제 예시 포함)
   // ─────────────────────────────────────────────
 
   const BASIC_LEVEL_INSTRUCTION =
-`같은 포맷 안에서 난이도에 따라 [ ] 대괄호 안에 들어갈 단어의 구체성만 다르게 조절합니다.
+`기초 단계 (직접 지시형)
+- 각 번호는 1~2줄 이내로 간결하게 작성합니다.
+- 블록 이름은 [ ] 안에 스크래치 화면 텍스트 그대로 씁니다.
+- 블록 설명은 "[블록이름] + 짧은 동작어" 형태의 나열형으로 작성합니다. (문장형 종결어 ❌)
+  예) 1. 🚩 [클릭했을 때] 가져오기   2. 📍 [x: 0 y: 0 (으)로 이동하기] 연결하기
+- 반복문이나 조건문(제어 블록)의 내부에 들어가는 하위 블록들은 평면적으로 나열하지 말고, **반드시 줄바꿈 후 들여쓰기(Space 2칸)와 하위 불릿 기호(-)**를 사용하여 시각적인 계층(depth)을 나타냅니다.
+  예)
+  3. 🔁 [무한 반복하기] 연결하기
+    - ❓ [만약 <위쪽 화살표 키를 눌렀는가?> 라면] 안쪽에 넣기
+      - 🔄 [왼쪽으로 10 도 돌기] 안쪽에 넣기
+- 이모지로 블록 종류를 시각적으로 구분해도 됩니다. (예: 🚩 이벤트, 📍 위치, 🔁 반복, ❓ 조건, 📢 신호)
+- 위치·초기값·신호명 같은 핵심 숫자와 텍스트는 반드시 명시합니다.`;
 
-기초 단계 (직접 지시형): 블록에 적힌 텍스트를 [100% 그대로] 적어줍니다. 조립 위치도 위, 아래, 안쪽 등으로 정확히 짚어줍니다.
-
-적용 예시 (기초 직접 지시):
-[1단계: 캐릭터 움직이기]
-목표: 깃발을 누르면 고양이가 앞으로 걸어갑니다.
+  const BASIC_LEVEL_EXAMPLE =
+`[1단계: 고양이 출발 준비]
+목표: 🚩 깃발을 누르면 고양이가 정해진 자리에 서고 움직입니다.
 
 ■ 고양이
-1. [클릭했을 때] 블록을 먼저 꺼냅니다.
-2. 그 바로 아래에 [10 만큼 움직이기] 블록을 자석처럼 붙여줍니다.
-3. 숫자를 [50]으로 바꾸고 화면의 초록 깃발을 눌러 확인합니다.`;
+1. 🚩 [클릭했을 때] 가져오기
+2. 📍 [x: (-150) y: (-100) (으)로 이동하기] 연결하기
+3. 🔁 [무한 반복하기] 연결하기
+  - ➡ [50 만큼 움직이기] 안쪽에 넣기
+  - ❓ [만약 <벽에 닿았는가?> 라면] 아래에 붙이기
+    - 📍 [벽에 닿으면 튕기기] 안쪽에 넣기`;
 
   const ADVANCED_LEVEL_INSTRUCTION =
-`같은 포맷 안에서 난이도에 따라 [ ] 대괄호 안에 들어갈 단어의 구체성만 다르게 조절합니다.
+`심화 단계 (간접 미션형)
+- 블록 이름을 직접적으로 지시하지 않고, 목적이나 기능 중심의 **자연스러운 문장형 종결어(~해보세요, ~합니다, ~만듭니다 등)**로 작성합니다. 나열형 종결어는 사용하지 마세요.
+- 반복문이나 조건문(제어 블록) 등 복잡한 논리 구조는 학생이 스스로 설계하도록 유도합니다.
+- 하위 블록들은 평면적으로 나열하지 말고, **반드시 줄바꿈 후 들여쓰기(Space 2칸)와 하위 불릿 기호(-)**를 사용하여 시각적인 계층(depth)을 나타냅니다.
+  예)
+  3. 아래의 조건과 행동들이 게임이 끝날 때까지 멈추지 않고 계속 작동하게 해보세요.
+    - 키보드의 위쪽 화살표 키를 눌렀는지 확인하는 조건을 만듭니다.
+      - 조건이 맞으면 마법봉이 왼쪽으로 10도씩 돌도록 만들어 보세요.
+- 이모지로 블록 기능을 시각적으로 구분해도 됩니다. (예: 🚩 이벤트, 📍 위치, 🔁 반복, ❓ 조건, 📢 신호)
+- 단, 아래 항목은 심화 단계에서도 구체적인 숫자·텍스트를 반드시 명시합니다:
+  · 초기 위치 (x, y 좌표) / 초기 크기·방향 / 대기 시간
+  · 조작 키 이름 / 신호명 / 변수 초기화 값`;
 
-심화 단계 (간접 미션형): 구체적인 숫자가 포함된 블록 이름 대신 [기능이나 목적] 중심으로 돌려서 표현합니다. 조건문이나 반복문의 구조는 아이들이 직접 설계하도록 유도합니다.
-★단, 게임이 올바르게 작동하기 위해 필요한 필수 초기값이나 기준 정보는 심화 단계에서도 구체적인 숫자/텍스트 정보를 그대로 명시해야 합니다:
-1. 캐릭터의 초기 위치 (예: x: [-150], y: [100] 위치로 이동하기)
-2. 초기 크기 및 방향 (예: 크기를 [80]%로 정하기, [90]도 방향 보기)
-3. 대기/지연 시간 (예: [2]초 기다리기)
-4. 특정 조작 키 (예: [스페이스] 키를 눌렀을 때)
-5. 특정 송수신 신호명 (예: [고기 구워짐] 신호 보내기)
-6. 변수 초기화 값 (예: [점수]를 [0]으로 정하기)
-
-적용 예시 (심화 간접 언급 - 고기굽기 프로젝트):
-[3단계: 불판에 고기 올리기]
-목표: 접시를 클릭했을 때 불판 위에 구울 고기를 새로 만들어냅니다.
+  const ADVANCED_LEVEL_EXAMPLE =
+`[3단계: 불판에 고기 올리기]
+목표: 접시를 클릭하면 불판 위에 고기가 새로 생겨나도록 합니다.
 
 ■ 고기접시
-1. 마우스가 접시에 [닿았는지] 그리고 마우스를 [클릭했는지] 동시에 계속 감시하도록 만듭니다.
-2. 두 조건이 모두 맞다면 불판에 보낼 [고기 신호]를 발생시킵니다.
+1. 마우스 포인터에 닿았는지와 마우스를 클릭했는지를 계속해서 감시하도록 구조를 설계해 보세요.
+2. 조건이 만족되면 다른 스프라이트들이 알 수 있도록 [고기] 신호를 보냅니다.
+
+---
+
+[3단계: 불판에 고기 올리기]
+목표: 불판이 신호를 받아 고기 복제본을 만듭니다.
 
 ■ 불판
-1. 방금 만든 [고기 신호를 받았을 때] 작동을 시작합니다.
-2. 플레이어가 불판을 마우스로 클릭하면, 구워질 [고기 복제본]을 하나 만들어내고 감시를 종료합니다.`;
+1. 📥 [고기] 신호를 받았을 때 동작을 시작하도록 만듭니다.
+2. 🖱 마우스를 클릭하면 [고기 복제본]을 새로 만들고 실행을 멈추도록 합니다.`;
 
   const PROMPT_TEMPLATE =
 `당신은 스크래치 3.0(Scratch 3.0) 전문 코칭 AI이자 교육 자료 제작자입니다.
 전달받은 [정답 프로젝트 JSON]은 완성된 스크래치 과제의 논리 구조입니다.
 이 정답 코드를 분석하여, 학생들이 단계별로 따라 하며 스스로 이 프로젝트를 완성할 수 있도록 돕는 "스캐폴딩 주석 가이드북"을 작성해 주세요.
 
-### 🗣 어조 및 단어 선택 규칙 (초등/중등 수준 최적화)
+### 🗣 작성 규칙
 
-- **대상 독자:** 초등학교 고학년 및 중학생
-- **지향할 점:** 아이들의 눈높이에 맞춘 친근하고 직관적이며 이해하기 쉬운 표현을 사용해 주세요. (예: "~ 아래에 자석처럼 붙여줍니다", "회전 방향을 정해줍니다", "시작 깃발을 누르면")
-- **지양할 점:** 지나치게 기술적이거나 기계적이고 딱딱한 한자어/영문 직역 표현은 절대 사용하지 마세요.
-  - ❌ 나쁜 예: "전체 스크립트 최종 최하단 마무리 지점에 [(90) 도 방향 보기] 동작 블록을 완벽 도킹하여 수평 정방향 축을 유지시킵니다."
-  - ⭕ 좋은 예 (기초): "맨 아래에 [(90)도 방향 보기] 블록을 붙여서 캐릭터가 오른쪽을 똑바로 바라보도록 만듭니다."
-  - ⭕ 좋은 예 (심화): "캐릭터가 [오른쪽을 똑바로 바라보도록] 회전 방향을 설정해 줍니다."
-  - ❌ 금지어 예시: 완벽 도킹, 수평 정방향 축 유지, 메모리에 적재, 데이터베이스에 바인딩, 루프 내부 분기, 세션 시작 등
+- **대상 독자:** 초등학교 저학년도 읽을 수 있도록, 짧고 쉬운 말로 씁니다.
+- **간결성:** 각 번호 항목은 **1~2줄 이내**로 끝냅니다. 불필요한 수식어나 설명은 과감히 생략합니다.
+- **문장 스타일 구분:** 난이도에 따라 지정된 문장 스타일을 준수합니다.
+  - 기초 단계: 명시적인 [블록이름] + 짧은 동작어의 나열형 (문장형 종결어 ❌). 예: "🚩 [클릭했을 때] 가져오기"
+  - 심화 단계: 간접적인 목적 중심의 문장형 종결어 (~합니다, ~해보세요). 예: "🚩 초록색 깃발을 클릭하면 작동하도록 만듭니다."
+- **이모지 활용:** 이모지로 블록 종류를 시각적으로 구분해도 됩니다. (예: 🚩 이벤트, 📍 위치, 🔁 반복, ❓ 조건, 📢 신호 송신, 📥 신호 수신, 🖱 마우스 클릭)
+- **금지:** 과도하게 기계적이거나 딱딱한 번역체 표현은 절대 쓰지 마세요.
+  - ❌ 나쁜 예: "전체 스크립트 최종 최하단 마무리 지점에 동작 블록을 완벽 도킹하여 수평 정방향 축을 유지시킵니다."
+  - ❌ 금지어: 완벽 도킹, 수평 정방향 축, 메모리 적재, 루프 내부 분기, 세션 시작 등
 
-### 📝 고정 주석 포맷 양식
+### 📄 전체 출력 구조 (반드시 이 순서와 규칙을 지켜주세요)
 
-반드시 각 중요 스크립트(동작 단위)마다 다음 형식을 엄격히 지켜 작성해 주세요 (Markdown 백틱 기호 없이 순수 텍스트로만 반환):
+가이드북은 아래 3개 영역을 순서대로 출력합니다. Markdown 백틱 기호 없이 순수 텍스트로만 반환합니다.
 
-[단계 제목]
-목표: 이 단계에서 완성할 동작을 한 줄로 요약합니다.
+#### [영역 1] 프로젝트 개요 — 맨 위에 1회만 작성
+
+[프로젝트 개요]
+이 프로젝트가 무엇을 만드는 것인지, 어떤 동작을 하는지를 초등학생이 이해할 수 있도록 2~3문장으로 설명합니다.
+등장하는 스프라이트 이름, 주요 기능, 플레이 방법(게임인 경우)을 간략히 포함합니다.
+
+---
+
+#### [영역 2] 스프라이트별 단계 안내 — 핵심 본문
+
+아래 규칙을 반드시 준수합니다:
+
+규칙 A — 1섹션 = 1스프라이트: 하나의 섹션 안에 ■ 스프라이트 이름은 반드시 하나만 등장합니다. 같은 단계에 여러 스프라이트가 있더라도 절대 한 섹션에 묶지 마세요.
+
+규칙 B — 단계 제목 반복: 동일한 단계(예: "1단계")에 여러 스프라이트가 속하면 [단계 제목]과 목표:를 각 스프라이트 섹션마다 똑같이 반복 작성합니다.
+
+규칙 C — 섹션 구분: 각 섹션은 --- 구분선으로 분리합니다.
+
+규칙 D — 단계 묶음 기준: 논리적으로 같은 시점에 이루어지는 여러 스프라이트의 스크립트는 같은 단계 번호를 공유합니다. 단계 번호는 스프라이트 수가 아닌 "구현 시점의 논리 단위"로 결정합니다.
+
+출력 포맷 (섹션 반복 단위):
+
+[N단계: 단계 제목]
+목표: 이 단계에서 이 스프라이트가 완성할 동작을 한 줄로 요약합니다.
 
 ■ 스프라이트 이름
-1. 구현 가이드 (난이도별 차등 적용)
+1. 구현 가이드 (난이도별 차등 적용, 나열형으로 작성)
 2. 구현 가이드
+
+---
+
+#### [영역 3] 응용 미션 — 맨 아래에 1회만 작성
+
+[🏆 응용 미션 / 도전 과제]
+완성된 프로젝트를 더 발전시킬 수 있는 도전 과제를 2~3가지 제시합니다.
+항목은 반드시 학생 스스로 생각하도록 유도하는 의문문(~할 수 있을까요? / ~하려면 어떻게 해야 할까요?) 형태로 작성합니다.
+1. 미션 내용 (의문문)
+2. 미션 내용 (의문문)
 
 ---
 
@@ -288,30 +340,20 @@
 
 ---
 
-### 💡 실제 적용 예시 (동일 포맷 비교)
+### 💡 실제 적용 예시 (고기굽기 프로젝트 기준 전체 출력 구조)
 
-#### 1. 기초 레벨 프로젝트 적용 예시 (직접 지시)
+[프로젝트 개요]
+이 프로젝트는 접시를 클릭해서 불판에 고기를 올리고, 고기가 다 구워지면 점수를 얻는 요리 게임입니다. 고기접시, 불판, 고기 스프라이트가 서로 신호를 주고받으며 함께 작동합니다. 초록 깃발을 눌러 시작해 보세요!
 
-[1단계: 캐릭터 움직이기]
-목표: 깃발을 누르면 고양이가 앞으로 걸어갑니다.
+---
 
-■ 고양이
-1. [클릭했을 때] 블록을 먼저 꺼냅니다.
-2. 그 바로 아래에 [10 만큼 움직이기] 블록을 자석처럼 붙여줍니다.
-3. 숫자를 [50]으로 바꾸고 화면의 초록 깃발을 눌러 확인합니다.
+{LEVEL_EXAMPLE}
 
-#### 2. 심화 레벨 프로젝트 적용 예시 (간접 언급 - 고기굽기 프로젝트)
+---
 
-[3단계: 불판에 고기 올리기]
-목표: 접시를 클릭했을 때 불판 위에 구울 고기를 새로 만들어냅니다.
-
-■ 고기접시
-1. 마우스가 접시에 [닿았는지] 그리고 마우스를 [클릭했는지] 동시에 계속 감시하도록 만듭니다.
-2. 두 조건이 모두 맞다면 불판에 보낼 [고기 신호]를 발생시킵니다.
-
-■ 불판
-1. 방금 만든 [고기 신호를 받았을 때] 작동을 시작합니다.
-2. 플레이어가 불판을 마우스로 클릭하면, 구워질 [고기 복제본]을 하나 만들어내고 감시를 종료합니다.
+[🏆 응용 미션 / 도전 과제]
+1. 고기를 3번 이상 올렸을 때 "오늘의 요리사!"라고 말하게 만들 수 있을까요?
+2. 고기가 너무 오래 불판에 있으면 탄 모양으로 바뀌도록 하려면 어떻게 코드를 짜야 할까요?
 
 ---
 
@@ -333,10 +375,12 @@
 
     const levelStr = level === "basic" ? "기초 단계 (직접 지시형)" : "심화 단계 (간접 미션형)";
     const levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION : ADVANCED_LEVEL_INSTRUCTION;
+    const levelExample = level === "basic" ? BASIC_LEVEL_EXAMPLE : ADVANCED_LEVEL_EXAMPLE;
 
     const promptStr = PROMPT_TEMPLATE
       .replace('{USER_SELECTED_LEVEL}', levelStr)
       .replace('{LEVEL_SPECIFIC_INSTRUCTION}', levelInst)
+      .replace('{LEVEL_EXAMPLE}', levelExample)
       .replace('{JSON_DATA}', JSON.stringify(lastParsedByTarget, null, 2));
 
     try {
@@ -353,150 +397,150 @@
 
   const OPCODE_LABEL_BASIC = {
     // 이벤트
-    'event_whenflagclicked':     '초록 깃발이 [클릭되었을 때] 블록을 배치합니다.',
-    'event_whenkeypressed':      '[{KEY} 키를 눌렀을 때] 블록을 배치합니다.',
-    'event_whenthisspriteclicked': '[이 스프라이트를 클릭했을 때] 블록을 배치합니다.',
-    'event_whenbroadcastreceived': '[{BROADCAST_OPTION} 신호를 받았을 때] 블록을 배치합니다.',
-    'event_broadcast':           '[{BROADCAST_INPUT} 신호 보내기] 블록을 조립합니다.',
-    'event_broadcastandwait':    '[{BROADCAST_INPUT} 신호 보내고 기다리기] 블록을 조립합니다.',
+    'event_whenflagclicked':     '🚩 [클릭했을 때] 가져오기',
+    'event_whenkeypressed':      '🚩 [{KEY} 키를 눌렀을 때] 가져오기',
+    'event_whenthisspriteclicked': '🚩 [이 스프라이트를 클릭했을 때] 가져오기',
+    'event_whenbroadcastreceived': '📥 [{BROADCAST_OPTION} 신호를 받았을 때] 가져오기',
+    'event_broadcast':           '📢 [{BROADCAST_INPUT} 신호 보내기] 연결하기',
+    'event_broadcastandwait':    '📢 [{BROADCAST_INPUT} 신호 보내고 기다리기] 연결하기',
     // 동작
-    'motion_movesteps':          '[{STEPS} 만큼 움직이기] 블록을 아래에 조립합니다.',
-    'motion_turnright':          '[{DEGREES} 도 돌기(오른쪽)] 블록을 조립합니다.',
-    'motion_turnleft':           '[{DEGREES} 도 돌기(왼쪽)] 블록을 조립합니다.',
-    'motion_gotoxy':             'x: [{X}] y: [{Y}] 로 이동하기 블록을 조립합니다.',
-    'motion_glidesecstoxy':      '[{SECS} 초 동안 x: {X} y: {Y} 로 이동하기] 블록을 조립합니다.',
-    'motion_pointindirection':   '[{DIRECTION} 도 방향 보기] 블록을 조립합니다.',
-    'motion_pointtowards':       '[{TOWARDS} 쪽 보기] 블록을 조립합니다.',
-    'motion_goto':               '[{TO} 로 이동하기] 블록을 조립합니다.',
-    'motion_ifonedgebounce':     '[벽에 닿으면 튕기기] 블록을 조립합니다.',
-    'motion_setx':               'x 좌표를 [{X}] 로 정하기 블록을 조립합니다.',
-    'motion_sety':               'y 좌표를 [{Y}] 로 정하기 블록을 조립합니다.',
-    'motion_changexby':          'x 좌표를 [{DX} 만큼 바꾸기] 블록을 조립합니다.',
-    'motion_changeyby':          'y 좌표를 [{DY} 만큼 바꾸기] 블록을 조립합니다.',
+    'motion_movesteps':          '➡ [{STEPS} 만큼 움직이기] 연결하기',
+    'motion_turnright':          '↩ [{DEGREES} 도 돌기(오른쪽)] 연결하기',
+    'motion_turnleft':           '↪ [{DEGREES} 도 돌기(왼쪽)] 연결하기',
+    'motion_gotoxy':             '📍 [x: {X} y: {Y} (으)로 이동하기] 연결하기',
+    'motion_glidesecstoxy':      '📍 [{SECS}초 동안 x: {X} y: {Y} (으)로 이동하기] 연결하기',
+    'motion_pointindirection':   '📍 [{DIRECTION} 도 방향 보기] 연결하기',
+    'motion_pointtowards':       '📍 [{TOWARDS} 쪽 보기] 연결하기',
+    'motion_goto':               '📍 [{TO} (으)로 이동하기] 연결하기',
+    'motion_ifonedgebounce':     '📍 [벽에 닿으면 튕기기] 연결하기',
+    'motion_setx':               '📍 [x 좌표를 {X} (으)로 정하기] 연결하기',
+    'motion_sety':               '📍 [y 좌표를 {Y} (으)로 정하기] 연결하기',
+    'motion_changexby':          '📍 [x 좌표를 {DX} 만큼 바꾸기] 연결하기',
+    'motion_changeyby':          '📍 [y 좌표를 {DY} 만큼 바꾸기] 연결하기',
     // 형태
-    'looks_show':                '[보이기] 블록을 조립합니다.',
-    'looks_hide':                '[숨기기] 블록을 조립합니다.',
-    'looks_sayforsecs':          '[{MESSAGE} 라고 {SECS} 초 동안 말하기] 블록을 조립합니다.',
-    'looks_say':                 '[{MESSAGE} 라고 말하기] 블록을 조립합니다.',
-    'looks_thinkforsecs':        '[{MESSAGE} 라고 {SECS} 초 동안 생각하기] 블록을 조립합니다.',
-    'looks_switchcostumeto':     '[{COSTUME} 모양으로 바꾸기] 블록을 조립합니다.',
-    'looks_nextcostume':         '[다음 모양으로 바꾸기] 블록을 조립합니다.',
-    'looks_setsizeto':           '[크기를 {SIZE} 로 정하기] 블록을 조립합니다.',
-    'looks_changesizeby':        '[크기를 {CHANGE} 만큼 바꾸기] 블록을 조립합니다.',
-    'looks_createclone':         '[{CLONE_OPTION} 의 복제본 만들기] 블록을 조립합니다.',
-    'looks_deletethisclone':     '[이 복제본 삭제하기] 블록을 조립합니다.',
+    'looks_show':                '👁 [보이기] 연결하기',
+    'looks_hide':                '👁 [숨기기] 연결하기',
+    'looks_sayforsecs':          '💬 [{MESSAGE} 라고 {SECS}초 동안 말하기] 연결하기',
+    'looks_say':                 '💬 [{MESSAGE} 라고 말하기] 연결하기',
+    'looks_thinkforsecs':        '💬 [{MESSAGE} 라고 {SECS}초 동안 생각하기] 연결하기',
+    'looks_switchcostumeto':     '🎨 [{COSTUME} 모양으로 바꾸기] 연결하기',
+    'looks_nextcostume':         '🎨 [다음 모양으로 바꾸기] 연결하기',
+    'looks_setsizeto':           '🔎 [크기를 {SIZE} 로 정하기] 연결하기',
+    'looks_changesizeby':        '🔎 [크기를 {CHANGE} 만큼 바꾸기] 연결하기',
+    'looks_createclone':         '📋 [{CLONE_OPTION} 의 복제본 만들기] 연결하기',
+    'looks_deletethisclone':     '📋 [이 복제본 삭제하기] 연결하기',
     // 소리
-    'sound_play':                '[{SOUND_MENU} 소리 재생하기] 블록을 조립합니다.',
-    'sound_playuntildone':       '[{SOUND_MENU} 소리 재생이 끝날 때까지 기다리기] 블록을 조립합니다.',
-    'sound_stopallsounds':       '[모든 소리 끄기] 블록을 조립합니다.',
+    'sound_play':                '🔊 [{SOUND_MENU} 소리 재생하기] 연결하기',
+    'sound_playuntildone':       '🔊 [{SOUND_MENU} 소리 재생이 끝날 때까지 기다리기] 연결하기',
+    'sound_stopallsounds':       '🔇 [모든 소리 끄기] 연결하기',
     // 제어
-    'control_wait':              '[{DURATION} 초 기다리기] 블록을 조립합니다.',
-    'control_repeat':            '[{TIMES} 번 반복하기] 블록을 조립하고, 반복할 내용을 안쪽에 넣습니다.',
-    'control_forever':           '[계속 반복하기] 블록을 조립하고, 반복할 내용을 안쪽에 넣습니다.',
-    'control_if':                '[만약 (조건) 이라면] 블록을 조립하고, 조건이 맞을 때 실행할 내용을 안쪽에 넣습니다.',
-    'control_if_else':           '[만약 (조건) 이라면 / 아니면] 블록을 조립하고, 각 경우의 내용을 안쪽에 넣습니다.',
-    'control_repeat_until':      '[(조건) 이 될 때까지 반복하기] 블록을 조립합니다.',
-    'control_stop':              '[{STOP_OPTION} 멈추기] 블록을 조립합니다.',
-    'control_start_as_clone':    '[복제되었을 때] 블록을 배치합니다.',
+    'control_wait':              '⏱ [{DURATION}초 기다리기] 연결하기',
+    'control_repeat':            '🔁 [{TIMES}번 반복하기] 연결하고 안쪽 채우기',
+    'control_forever':           '🔁 [계속 반복하기] 연결하고 안쪽 채우기',
+    'control_if':                '❓ [만약 (조건) 이라면] 연결하고 안쪽 채우기',
+    'control_if_else':           '❓ [만약 (조건) 이라면 / 아니면] 연결하고 안쪽 채우기',
+    'control_repeat_until':      '🔁 [(조건) 이 될 때까지 반복하기] 연결하기',
+    'control_stop':              '⛔ [{STOP_OPTION} 멈추기] 연결하기',
+    'control_start_as_clone':    '📋 [복제되었을 때] 가져오기',
     // 감지
-    'sensing_touchingobject':    '[(물체)에 닿았는가?] 블록을 조건 칸에 넣습니다.',
-    'sensing_touchingcolor':     '[(색)에 닿았는가?] 블록을 조건 칸에 넣습니다.',
-    'sensing_keypressed':        '[{KEY_OPTION} 키를 눌렀는가?] 블록을 조건 칸에 넣습니다.',
-    'sensing_mousedown':         '[마우스를 클릭했는가?] 블록을 조건 칸에 넣습니다.',
-    'sensing_distanceto':        '[{DISTANCETOMENU} 까지의 거리] 블록을 값 칸에 넣습니다.',
-    'sensing_askandwait':        '[{QUESTION} 라고 묻고 기다리기] 블록을 조립합니다.',
+    'sensing_touchingobject':    '👆 [(물체)에 닿았는가?] 조건 칸에 넣기',
+    'sensing_touchingcolor':     '👆 [(색)에 닿았는가?] 조건 칸에 넣기',
+    'sensing_keypressed':        '⌨ [{KEY_OPTION} 키를 눌렀는가?] 조건 칸에 넣기',
+    'sensing_mousedown':         '🖱 [마우스를 클릭했는가?] 조건 칸에 넣기',
+    'sensing_distanceto':        '📏 [{DISTANCETOMENU} 까지의 거리] 값 칸에 넣기',
+    'sensing_askandwait':        '❓ [{QUESTION} 라고 묻고 기다리기] 연결하기',
     // 연산
-    'operator_add':              '숫자를 더하는 [{NUM1} + {NUM2}] 연산 블록을 값 칸에 넣습니다.',
-    'operator_subtract':         '숫자를 빼는 [{NUM1} - {NUM2}] 연산 블록을 값 칸에 넣습니다.',
-    'operator_multiply':         '숫자를 곱하는 [{NUM1} * {NUM2}] 연산 블록을 값 칸에 넣습니다.',
-    'operator_divide':           '숫자를 나누는 [{NUM1} / {NUM2}] 연산 블록을 값 칸에 넣습니다.',
-    'operator_equals':           '[{OPERAND1} = {OPERAND2}] 비교 블록을 조건 칸에 넣습니다.',
-    'operator_gt':               '[{OPERAND1} > {OPERAND2}] 비교 블록을 조건 칸에 넣습니다.',
-    'operator_lt':               '[{OPERAND1} < {OPERAND2}] 비교 블록을 조건 칸에 넣습니다.',
-    'operator_and':              '[{OPERAND1} 그리고 {OPERAND2}] 논리 블록을 조건 칸에 넣습니다.',
-    'operator_or':               '[{OPERAND1} 또는 {OPERAND2}] 논리 블록을 조건 칸에 넣습니다.',
-    'operator_not':              '[{OPERAND} 이(가) 아님] 논리 블록을 조건 칸에 넣습니다.',
-    'operator_random':           '[{FROM} 부터 {TO} 사이의 난수] 블록을 값 칸에 넣습니다.',
+    'operator_add':              '➕ [{NUM1} + {NUM2}] 값 칸에 넣기',
+    'operator_subtract':         '➖ [{NUM1} - {NUM2}] 값 칸에 넣기',
+    'operator_multiply':         '✖ [{NUM1} * {NUM2}] 값 칸에 넣기',
+    'operator_divide':           '➗ [{NUM1} / {NUM2}] 값 칸에 넣기',
+    'operator_equals':           '🟰 [{OPERAND1} = {OPERAND2}] 조건 칸에 넣기',
+    'operator_gt':               '🔼 [{OPERAND1} > {OPERAND2}] 조건 칸에 넣기',
+    'operator_lt':               '🔽 [{OPERAND1} < {OPERAND2}] 조건 칸에 넣기',
+    'operator_and':              '🔗 [{OPERAND1} 그리고 {OPERAND2}] 조건 칸에 넣기',
+    'operator_or':               '🔗 [{OPERAND1} 또는 {OPERAND2}] 조건 칸에 넣기',
+    'operator_not':              '🚫 [{OPERAND} 이(가) 아님] 조건 칸에 넣기',
+    'operator_random':           '🎲 [{FROM} 부터 {TO} 사이의 난수] 값 칸에 넣기',
     // 변수·리스트
-    'data_setvariableto':        '[{VARIABLE} 을(를) {VALUE} 로 정하기] 블록을 조립합니다.',
-    'data_changevariableby':     '[{VARIABLE} 을(를) {VALUE} 만큼 바꾸기] 블록을 조립합니다.',
-    'data_addtolist':            '[{ITEM} 을(를) {LIST} 에 추가하기] 블록을 조립합니다.',
-    'data_deleteoflist':         '[{LIST} 의 {INDEX} 번째 항목 삭제하기] 블록을 조립합니다.',
-    'data_deletealloflist':      '[{LIST} 의 모든 항목 삭제하기] 블록을 조립합니다.',
+    'data_setvariableto':        '📦 [{VARIABLE} 을(를) {VALUE} 로 정하기] 연결하기',
+    'data_changevariableby':     '📦 [{VARIABLE} 을(를) {VALUE} 만큼 바꾸기] 연결하기',
+    'data_addtolist':            '📋 [{ITEM} 을(를) {LIST} 에 추가하기] 연결하기',
+    'data_deleteoflist':         '📋 [{LIST} 의 {INDEX} 번째 항목 삭제하기] 연결하기',
+    'data_deletealloflist':      '📋 [{LIST} 의 모든 항목 삭제하기] 연결하기',
   };
 
   const OPCODE_LABEL_ADVANCED = {
     // 이벤트
-    'event_whenflagclicked':     '프로그램의 [시작 신호]를 받아 동작을 시작합니다.',
-    'event_whenkeypressed':      '[{KEY} 키를 눌렀을 때] 작동을 시작합니다.',
-    'event_whenthisspriteclicked': '이 스프라이트를 [클릭했을 때] 작동을 시작합니다.',
-    'event_whenbroadcastreceived': '[{BROADCAST_OPTION} 신호를 받았을 때] 작동을 시작합니다.',
-    'event_broadcast':           '다른 스프라이트에게 [{BROADCAST_INPUT} 신호를 보내는] 블록을 조립합니다.',
-    'event_broadcastandwait':    '다른 스프라이트에게 [{BROADCAST_INPUT} 신호를 보내고, 처리될 때까지 기다리는] 블록을 조립합니다.',
+    'event_whenflagclicked':     '🚩 초록색 깃발을 클릭했을 때 작동을 시작하도록 만듭니다.',
+    'event_whenkeypressed':      '🚩 [{KEY}] 키를 눌렀을 때 작동을 시작하도록 합니다.',
+    'event_whenthisspriteclicked': '🚩 이 스프라이트를 클릭했을 때 동작이 시작되게 만듭니다.',
+    'event_whenbroadcastreceived': '📥 [{BROADCAST_OPTION}] 신호를 받았을 때 작동하도록 시작점을 만듭니다.',
+    'event_broadcast':           '📢 다른 모든 스프라이트에게 [{BROADCAST_INPUT}] 신호를 보내도록 만듭니다.',
+    'event_broadcastandwait':    '📢 [{BROADCAST_INPUT}] 신호를 보내고 그 일이 끝날 때까지 기다리도록 설계합니다.',
     // 동작
-    'motion_movesteps':          '캐릭터를 [앞으로 이동시키는] 블록을 조립합니다.',
-    'motion_turnright':          '캐릭터를 [오른쪽으로 회전시키는] 블록을 조립합니다.',
-    'motion_turnleft':           '캐릭터를 [왼쪽으로 회전시키는] 블록을 조립합니다.',
-    'motion_gotoxy':             '캐릭터를 [x: {X}, y: {Y}] 위치로 이동시킵니다.',
-    'motion_glidesecstoxy':      '캐릭터를 [{SECS}초 동안 x: {X}, y: {Y}] 위치로 부드럽게 이동시킵니다.',
-    'motion_pointindirection':   '캐릭터가 [{DIRECTION}도 방향을 바라보게 하는] 블록을 조립합니다.',
-    'motion_pointtowards':       '캐릭터가 [대상 쪽을 바라보게 하는] 블록을 조립합니다.',
-    'motion_goto':               '캐릭터를 [대상 위치로 이동시키는] 블록을 조립합니다.',
-    'motion_ifonedgebounce':     '캐릭터가 [화면 끝에 닿으면 튕기는] 블록을 조립합니다.',
-    'motion_setx':               '캐릭터의 [x 좌표를 {X} (으)로 정하는] 블록을 조립합니다.',
-    'motion_sety':               '캐릭터의 [y 좌표를 {Y} (으)로 정하는] 블록을 조립합니다.',
-    'motion_changexby':          '캐릭터의 [가로 위치를 바꾸는] 블록을 조립합니다.',
-    'motion_changeyby':          '캐릭터의 [세로 위치를 바꾸는] 블록을 조립합니다.',
+    'motion_movesteps':          '➡ 앞으로 [{STEPS}] 만큼 움직이게 해보세요.',
+    'motion_turnright':          '↩ 오른쪽으로 [{DEGREES}] 도 돌게 만들어 보세요.',
+    'motion_turnleft':           '↪ 왼쪽으로 [{DEGREES}] 도 돌게 만들어 보세요.',
+    'motion_gotoxy':             '📍 처음 위치를 x: {X}, y: {Y} (으)로 지정해 줍니다.',
+    'motion_glidesecstoxy':      '📍 {SECS}초 동안 x: {X}, y: {Y} 위치로 부드럽게 미끄러지며 이동하도록 합니다.',
+    'motion_pointindirection':   '📍 {DIRECTION}도 방향을 바라보게 설정해 보세요.',
+    'motion_pointtowards':       '📍 지정된 대상을 향해 바라보게 만듭니다.',
+    'motion_goto':               '📍 대상의 위치로 바로 이동하게 해보세요.',
+    'motion_ifonedgebounce':     '📍 화면의 끝부분(벽)에 닿으면 튕겨 나오도록 만듭니다.',
+    'motion_setx':               '📍 가로(x) 위치를 {X} (으)로 고정합니다.',
+    'motion_sety':               '📍 세로(y) 위치를 {Y} (으)로 고정합니다.',
+    'motion_changexby':          '📍 가로(x) 위치를 일정량만큼 바꿔줍니다.',
+    'motion_changeyby':          '📍 세로(y) 위치를 일정량만큼 바꿔줍니다.',
     // 형태
-    'looks_show':                '캐릭터를 [화면에 나타나게 하는] 블록을 조립합니다.',
-    'looks_hide':                '캐릭터를 [화면에서 숨기는] 블록을 조립합니다.',
-    'looks_sayforsecs':          '캐릭터가 [일정 시간 동안 말풍선을 표시하는] 블록을 조립합니다.',
-    'looks_say':                 '캐릭터가 [말풍선을 표시하는] 블록을 조립합니다.',
-    'looks_thinkforsecs':        '캐릭터가 [생각하는 말풍선을 표시하는] 블록을 조립합니다.',
-    'looks_switchcostumeto':     '캐릭터의 [모양을 바꾸는] 블록을 조립합니다.',
-    'looks_nextcostume':         '캐릭터의 [다음 모양으로 전환하는] 블록을 조립합니다.',
-    'looks_setsizeto':           '캐릭터의 [크기를 {SIZE}% 로 정하는] 블록을 조립합니다.',
-    'looks_changesizeby':        '캐릭터의 [크기를 변경하는] 블록을 조립합니다.',
-    'looks_createclone':         '[복제본을 새로 만드는] 블록을 조립합니다.',
-    'looks_deletethisclone':     '[현재 복제본을 삭제하는] 블록을 조립합니다.',
+    'looks_show':                '👁 화면에 다시 나타나도록 만듭니다.',
+    'looks_hide':                '👁 화면에서 보이지 않도록 숨겨줍니다.',
+    'looks_sayforsecs':          '💬 정해진 시간 동안 말풍선을 띄우게 해보세요.',
+    'looks_say':                 '💬 계속해서 말풍선을 띄워줍니다.',
+    'looks_thinkforsecs':        '💬 속으로 생각하는 말풍선을 보여주도록 만듭니다.',
+    'looks_switchcostumeto':     '🎨 모양을 다른 것으로 바꾸어 줍니다.',
+    'looks_nextcostume':         '🎨 다음 모양으로 넘어가게 해보세요.',
+    'looks_setsizeto':           '🔎 크기를 {SIZE}% 로 설정합니다.',
+    'looks_changesizeby':        '🔎 크기를 점점 키우거나 줄이게 만듭니다.',
+    'looks_createclone':         '📋 자기 자신이나 다른 대상의 복제본을 생성해 보세요.',
+    'looks_deletethisclone':     '📋 사용이 끝난 복제본을 삭제하도록 설계합니다.',
     // 소리
-    'sound_play':                '[소리를 재생하는] 블록을 조립합니다.',
-    'sound_playuntildone':       '[소리 재생이 끝날 때까지 기다리는] 블록을 조립합니다.',
-    'sound_stopallsounds':       '[모든 소리를 끄는] 블록을 조립합니다.',
+    'sound_play':                '🔊 소리를 재생하도록 만듭니다.',
+    'sound_playuntildone':       '🔊 소리가 끝날 때까지 기다리도록 설정합니다.',
+    'sound_stopallsounds':       '🔇 나고 있는 모든 소리를 끄게 해보세요.',
     // 제어
-    'control_wait':              '[{DURATION}초 동안 기다리는] 블록을 조립합니다.',
-    'control_repeat':            '[정해진 횟수만큼 반복하는] 블록을 조립하고, 반복할 내용을 설계합니다.',
-    'control_forever':           '[계속 반복하는] 블록을 조립하고, 반복할 내용을 설계합니다.',
-    'control_if':                '[특정 조건일 때만 실행하는] 구조를 설계합니다.',
-    'control_if_else':           '[조건에 따라 두 가지로 분기하는] 구조를 설계합니다.',
-    'control_repeat_until':      '[특정 조건이 될 때까지 계속 반복하는] 구조를 설계합니다.',
-    'control_stop':              '[실행을 멈추는] 블록을 조립합니다.',
-    'control_start_as_clone':    '[복제되었을 때] 실행할 동작을 설계합니다.',
+    'control_wait':              '⏱ {DURATION}초 동안 잠시 기다리게 만듭니다.',
+    'control_repeat':            '🔁 정해진 횟수만큼 안쪽의 동작들을 반복하도록 설계해 보세요.',
+    'control_forever':           '🔁 멈추지 않고 안쪽의 동작들을 계속해서 반복하도록 구조를 짭니다.',
+    'control_if':                '❓ 특정한 조건이 만족되었을 때만 안쪽의 동작이 실행되도록 조건을 만들어 보세요.',
+    'control_if_else':           '❓ 조건이 만족될 때와 아닐 때, 두 가지 길로 나누어 실행되도록 설계합니다.',
+    'control_repeat_until':      '🔁 특정한 조건이 이루어질 때까지 반복해서 동작하도록 만듭니다.',
+    'control_stop':              '⛔ 실행되고 있는 동작이나 스크립트를 멈추게 합니다.',
+    'control_start_as_clone':    '📋 복제본으로 처음 만들어졌을 때 해야 할 행동을 설계합니다.',
     // 감지
-    'sensing_touchingobject':    '[특정 물체에 닿았는지 감지하는] 조건 블록을 활용합니다.',
-    'sensing_touchingcolor':     '[특정 색에 닿았는지 감지하는] 조건 블록을 활용합니다.',
-    'sensing_keypressed':        '[키를 눌렀는지 감지하는] 조건 블록을 활용합니다.',
-    'sensing_mousedown':         '[마우스 클릭 여부를 감지하는] 조건 블록을 활용합니다.',
-    'sensing_distanceto':        '[대상까지의 거리를 측정하는] 블록을 활용합니다.',
-    'sensing_askandwait':        '[질문을 하고 입력을 기다리는] 블록을 조립합니다.',
+    'sensing_touchingobject':    '👆 특정 물체에 닿았는지 감지하는 조건을 활용해 보세요.',
+    'sensing_touchingcolor':     '👆 특정 색상에 닿았는지 감지하는 조건을 활용해 보세요.',
+    'sensing_keypressed':        '⌨ 키보드의 키가 눌렸는지 감지하는 조건을 넣습니다.',
+    'sensing_mousedown':         '🖱 마우스가 클릭되었는지 확인하는 조건을 사용해 보세요.',
+    'sensing_distanceto':        '📏 대상까지의 거리가 얼마나 되는지 측정하여 활용합니다.',
+    'sensing_askandwait':        '❓ 질문을 화면에 띄우고 사용자의 대답을 기다리게 만듭니다.',
     // 연산
-    'operator_add':              '[두 값을 더하는] 연산 블록을 활용합니다.',
-    'operator_subtract':         '[두 값을 빼는] 연산 블록을 활용합니다.',
-    'operator_multiply':         '[두 값을 곱하는] 연산 블록을 활용합니다.',
-    'operator_divide':           '[두 값을 나누는] 연산 블록을 활용합니다.',
-    'operator_equals':           '[두 값이 같은지 비교하는] 블록을 조건 칸에 활용합니다.',
-    'operator_gt':               '[값이 더 큰지 비교하는] 블록을 조건 칸에 활용합니다.',
-    'operator_lt':               '[값이 더 작은지 비교하는] 블록을 조건 칸에 활용합니다.',
-    'operator_and':              '[두 조건이 모두 맞아야 하는] 논리 블록을 활용합니다.',
-    'operator_or':               '[두 조건 중 하나라도 맞는] 논리 블록을 활용합니다.',
-    'operator_not':              '[조건이 아닐 때 실행하는] 논리 블록을 활용합니다.',
-    'operator_random':           '[무작위 숫자를 사용하는] 블록을 활용합니다.',
+    'operator_add':              '➕ 두 숫자를 더한 값을 활용하도록 식을 만듭니다.',
+    'operator_subtract':         '➖ 두 숫자를 뺀 값을 활용하도록 식을 만듭니다.',
+    'operator_multiply':         '✖ 두 숫자를 곱한 값을 활용하도록 식을 만듭니다.',
+    'operator_divide':           '➗ 두 숫자를 나눈 값을 활용하도록 식을 만듭니다.',
+    'operator_equals':           '🟰 두 값이 똑같은지 비교하는 조건을 만들어 줍니다.',
+    'operator_gt':               '🔼 앞의 값이 뒤의 값보다 큰지 비교하는 조건을 넣습니다.',
+    'operator_lt':               '🔽 앞의 값이 뒤의 값보다 작은지 비교하는 조건을 넣습니다.',
+    'operator_and':              '🔗 두 가지 조건이 모두 맞아야 하는 복합 조건을 설계해 보세요.',
+    'operator_or':               '🔗 두 가지 조건 중 하나라도 맞으면 되는 조건을 설계해 보세요.',
+    'operator_not':              '🚫 그 조건이 아닐 때 실행되도록 반대 조건을 설정합니다.',
+    'operator_random':           '🎲 무작위로 숫자를 뽑아서 사용하도록 만들어 봅니다.',
     // 변수·리스트
-    'data_setvariableto':        '[{VARIABLE} 변수의 값을 {VALUE} (으)로 정하는] 블록을 조립합니다.',
-    'data_changevariableby':     '[{VARIABLE} 변수의 값을 {VALUE} 만큼 변경하는] 블록을 조립합니다.',
-    'data_addtolist':            '[목록에 항목을 추가하는] 블록을 조립합니다.',
-    'data_deleteoflist':         '[목록에서 항목을 삭제하는] 블록을 조립합니다.',
-    'data_deletealloflist':      '[목록의 모든 항목을 삭제하는] 블록을 조립합니다.',
+    'data_setvariableto':        '📦 {VARIABLE} 변수의 값을 {VALUE} (으)로 정해줍니다.',
+    'data_changevariableby':     '📦 {VARIABLE} 변수의 값을 {VALUE} 만큼 늘리거나 줄이게 만듭니다.',
+    'data_addtolist':            '📋 리스트에 새로운 항목을 추가하도록 합니다.',
+    'data_deleteoflist':         '📋 리스트에서 불필요해진 항목을 삭제하도록 합니다.',
+    'data_deletealloflist':      '📋 리스트의 모든 항목을 싹 비우도록 만듭니다.',
   };
 
   // opcode의 fields/inputs에서 값을 추출하여 템플릿 {KEY} 치환
@@ -581,16 +625,63 @@
           lines.push('');
           lines.push('■ ' + targetName);
 
-          let itemIndex = 1;
-          for (const block of script) {
-            if (!block || !block.opcode) continue;
-            const tmpl = labelMap[block.opcode];
-            if (tmpl) {
-              const filled = fillOpcodeTemplate(tmpl, block);
-              lines.push(itemIndex + '. ' + filled);
-              itemIndex++;
+          // 재귀적으로 블록 시퀀스와 중첩 블록(SUBSTACK 등)을 파싱하는 함수
+          function renderBlockSequence(seq, depth) {
+            if (!Array.isArray(seq)) return;
+            let indentStr = '';
+            for(let i=0; i<depth; i++) indentStr += '  ';
+            
+            for (const block of seq) {
+              if (!block || !block.opcode) continue;
+              const tmpl = labelMap[block.opcode];
+              if (tmpl) {
+                const filled = fillOpcodeTemplate(tmpl, block);
+                let lineStr = '';
+                if (depth === 0) {
+                  lineStr = stepIndex + '. ' + filled;
+                  stepIndex++; // 최상위만 번호 증가 (그러나 이 로직에서 stepIndex는 각 스크립트 묶음에 대해 쓰이므로, 내부 아이템 번호를 따로 써야 함)
+                } else {
+                  lineStr = indentStr + '- ' + filled;
+                }
+                lines.push(lineStr);
+              }
+              
+              // 중첩된 SUBSTACK이나 CONDITION 파싱
+              if (block.inputs) {
+                // 특정 순서대로 처리(조건 -> 본문 -> else본문)
+                if (block.inputs.CONDITION) {
+                  renderBlockSequence(block.inputs.CONDITION, depth + 1);
+                }
+                if (block.inputs.SUBSTACK) {
+                  renderBlockSequence(block.inputs.SUBSTACK, depth + 1);
+                }
+                if (block.inputs.SUBSTACK2) { // if_else 구조
+                  renderBlockSequence(block.inputs.SUBSTACK2, depth + 1);
+                }
+              }
             }
           }
+
+          let itemIndex = 1;
+          // 최상위 depth 처리를 위한 로컬 재귀 함수 (itemIndex 유지)
+          function renderRootSequence(seq) {
+            for (const block of seq) {
+              if (!block || !block.opcode) continue;
+              const tmpl = labelMap[block.opcode];
+              if (tmpl) {
+                const filled = fillOpcodeTemplate(tmpl, block);
+                lines.push(itemIndex + '. ' + filled);
+                itemIndex++;
+              }
+              if (block.inputs) {
+                if (block.inputs.CONDITION) renderBlockSequence(block.inputs.CONDITION, 1);
+                if (block.inputs.SUBSTACK) renderBlockSequence(block.inputs.SUBSTACK, 1);
+                if (block.inputs.SUBSTACK2) renderBlockSequence(block.inputs.SUBSTACK2, 1);
+              }
+            }
+          }
+
+          renderRootSequence(script);
 
           lines.push('');
           lines.push('---');
