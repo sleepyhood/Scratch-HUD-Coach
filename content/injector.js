@@ -20,6 +20,25 @@
   let lastSavedSprites = [];
   let lastSavedVariables = [];
   let lastSavedBroadcasts = [];
+  let lastSavedCommentsJson = '';
+  let lastSavedGhostCount = -1;
+
+  // Initialize storage cache once at startup
+  chrome.storage.local.get([
+    'custom_sprites_list',
+    'custom_variables_list',
+    'custom_broadcasts_list',
+    'custom_comments_by_target',
+    'custom_ghost_comments_count'
+  ], (res) => {
+    if (res) {
+      if (Array.isArray(res.custom_sprites_list)) lastSavedSprites = res.custom_sprites_list;
+      if (Array.isArray(res.custom_variables_list)) lastSavedVariables = res.custom_variables_list;
+      if (Array.isArray(res.custom_broadcasts_list)) lastSavedBroadcasts = res.custom_broadcasts_list;
+      if (res.custom_comments_by_target) lastSavedCommentsJson = JSON.stringify(res.custom_comments_by_target);
+      if (typeof res.custom_ghost_comments_count === 'number') lastSavedGhostCount = res.custom_ghost_comments_count;
+    }
+  });
 
   function arraysEqual(a, b) {
     if (a.length !== b.length) return false;
@@ -40,18 +59,28 @@
         const newVars = currentSnapshot.allVariables || [];
         const newBroadcasts = currentSnapshot.allBroadcasts || [];
 
+        const newCommentsByTarget = currentSnapshot.cleanCommentsByTarget || {};
+        const ghostCommentsCount = currentSnapshot.ghostCommentsCount || 0;
+        const newCommentsJson = JSON.stringify(newCommentsByTarget);
+
         if (!arraysEqual(lastSavedSprites, newSprites) ||
             !arraysEqual(lastSavedVariables, newVars) ||
-            !arraysEqual(lastSavedBroadcasts, newBroadcasts)) {
+            !arraysEqual(lastSavedBroadcasts, newBroadcasts) ||
+            lastSavedCommentsJson !== newCommentsJson ||
+            lastSavedGhostCount !== ghostCommentsCount) {
           
           lastSavedSprites = newSprites;
           lastSavedVariables = newVars;
           lastSavedBroadcasts = newBroadcasts;
+          lastSavedCommentsJson = newCommentsJson;
+          lastSavedGhostCount = ghostCommentsCount;
 
           chrome.storage.local.set({
             custom_sprites_list: newSprites,
             custom_variables_list: newVars,
-            custom_broadcasts_list: newBroadcasts
+            custom_broadcasts_list: newBroadcasts,
+            custom_comments_by_target: newCommentsByTarget,
+            custom_ghost_comments_count: ghostCommentsCount
           });
         }
       }
@@ -349,7 +378,9 @@
     if (ev.data && ev.data.source === "scratch-hud" && ev.data.type === "APPLY_RESULT") {
       const res = ev.data.payload;
       if (res.ok) {
-        if (res.fallback) {
+        if (res.message) {
+          showToast(res.message, 'success');
+        } else if (res.fallback) {
           showToast(`⚠️ <b>대체 주입 안내</b><br>원래 <b>[${res.targetSprite}]</b> 전용 블록이지만, 현재 <b>[${res.currentSprite}]</b>에 강제 주입되었습니다.`, 'warning');
         } else {
           showToast(`✅ 블록이 성공적으로 주입되었습니다.`, 'success');

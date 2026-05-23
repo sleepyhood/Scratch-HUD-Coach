@@ -152,6 +152,20 @@
           📋 AI 프롬프트 가이드 보기 <span id="guide-arrow">▼</span>
         </button>
         <div id="guide-content" style="display: none; margin-top: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px; padding-bottom:6px; border-bottom:1px dashed rgba(0,0,0,0.08);">
+            <input type="checkbox" id="popup-cb-include-comments" style="cursor:pointer; width:13px; height:13px; accent-color:#6366f1;">
+            <label for="popup-cb-include-comments" style="font-size:11px; color:#475569; cursor:pointer; user-select:none; line-height:1.4;">
+              📝 프로젝트 내 주석(구현 지침) 포함
+            </label>
+          </div>
+          <div id="popup-ghost-cleanup-container" style="margin-bottom:6px; display:none; align-items:center; justify-content:space-between; background:#fff1f2; border:1px solid #fecdd3; border-radius:6px; padding:6px 8px;">
+            <span style="font-size:11px; color:#be123c;">
+              ⚠️ 유령 주석 <strong id="popup-ghost-count">0</strong>개 감지됨
+            </span>
+            <button id="popup-btn-clean-ghost" style="padding:3px 8px; font-size:10px; border-radius:4px; background:#e11d48; color:white; border:none; cursor:pointer; font-weight:bold; width:auto; box-shadow:none;">
+              정리하기
+            </button>
+          </div>
           <textarea id="ai-prompt-template" readonly style="width: 100%; height: 120px; font-size: 10px; font-family: monospace; background: transparent; border: none; outline: none; resize: none;">
 [시스템 지침]
 당신은 스크래치 3.0 코딩 AI 어시스턴트입니다.
@@ -163,7 +177,7 @@
   "스프라이트이름1": [
     [
       { "opcode": "event_whenflagclicked" },
-      { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+      { "opcode": "motion_movesteps", "inputs": { "STEPS": 10 } }
     ]
   ]
 }
@@ -171,22 +185,25 @@
 - 시작 이벤트(깃발): { "opcode": "event_whenflagclicked" }
 - 키 클릭 이벤트: { "opcode": "event_whenkeypressed", "fields": { "KEY_OPTION": "space" } }
 - 신호 받았을 때: { "opcode": "event_whenbroadcastreceived", "fields": { "BROADCAST_OPTION": "신호명" } }
-- 신호 보내기: { "opcode": "event_broadcast", "inputs": { "BROADCAST_INPUT": [11, "신호명", "broadcast_id"] } }
-- ~초 기다리기: { "opcode": "control_wait", "inputs": { "DURATION": [4, 10, "1"] } }
-- 10번 반복하기: { "opcode": "control_repeat", "inputs": { "TIMES": [4, 10, "10"], "SUBSTACK": [ ... ] } }
+- 신호 보내기: { "opcode": "event_broadcast", "inputs": { "BROADCAST_INPUT": { "opcode": "event_broadcast_menu", "fields": { "BROADCAST_OPTION": "신호명" } } } }
+- ~초 기다리기: { "opcode": "control_wait", "inputs": { "DURATION": 1 } }
+- 10번 반복하기: { "opcode": "control_repeat", "inputs": { "TIMES": 10, "SUBSTACK": [ ... ] } }
 - 무한 반복하기: { "opcode": "control_forever", "inputs": { "SUBSTACK": [ ... ] } }
 - 만약 ~라면: { "opcode": "control_if", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ] } }
 - 만약 ~라면, 아니면: { "opcode": "control_if_else", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ], "SUBSTACK2": [ ... ] } }
-- 변수 정하기: { "opcode": "data_setvariableto", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "0"] } }
-- 변수 바꾸기: { "opcode": "data_changevariableby", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "1"] } }
-- 닿았는가 감지: { "opcode": "sensing_touchingobject", "inputs": { "TOUCHINGOBJECTMENU": [1, [10, "_mouse_", "mouse_id"]] } }
-- x, y 좌표 이동: { "opcode": "motion_gotoxy", "inputs": { "X": [4, 10, "0"], "Y": [4, 10, "0"] } }
-- 10만큼 움직이기: { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+- 변수 정하기: { "opcode": "data_setvariableto", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": 0 } }
+- 변수 바꾸기: { "opcode": "data_changevariableby", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": 1 } }
+- 닿았는가 감지: { "opcode": "sensing_touchingobject", "inputs": { "TOUCHINGOBJECTMENU": { "opcode": "sensing_touchingobjectmenu", "fields": { "TOUCHINGOBJECTMENU": "_mouse_" } } } }
+- x, y 좌표 이동: { "opcode": "motion_gotoxy", "inputs": { "X": 0, "Y": 0 } }
+- 10만큼 움직이기: { "opcode": "motion_movesteps", "inputs": { "STEPS": 10 } }
+- 모양 바꾸기: { "opcode": "looks_switchcostumeto", "inputs": { "COSTUME": { "opcode": "looks_costume", "fields": { "COSTUME": "모양명" } } } }
+- ~의 ~좌표/값 감지: { "opcode": "sensing_of", "fields": { "PROPERTY": "x position" }, "inputs": { "OBJECT": { "opcode": "sensing_of_object_menu", "fields": { "OBJECT": "스프라이트명" } } } }
 
 주의:
 1. Scratch 3.0 공식 opcode만 사용하세요.
 2. UUID는 부여하지 마세요.
-3. 순수한 JSON 텍스트만 출력하세요.</textarea>
+3. inputs 필드에는 수식 블록 객체 혹은 단순 원시값(숫자/문자열)을 입력해야 합니다. 대괄호 형식의 내부 VM용 원시값 배열(예: [4, 10, "1"])은 절대 사용하지 마세요.
+4. 순수한 JSON 텍스트만 출력하세요.</textarea>
           <button id="btn-copy-guide" style="background: #3b82f6; padding: 6px; font-size: 11px; margin-top: 6px; box-shadow: none;">가이드 복사</button>
         </div>
       </div>

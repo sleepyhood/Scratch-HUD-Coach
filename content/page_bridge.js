@@ -3,6 +3,7 @@
   const MAX_RETRY_MS = 15000;
   let startedAt = Date.now();
   let hackVm = null;
+  let lastSnapshotJson = null;
 
   // Attempt to scrape the VM from the React DOM tree
   function findScratchVM() {
@@ -28,7 +29,7 @@
     return null;
   }
 
-  function publishSnapshot() {
+  function publishSnapshot(force = false) {
     const vm = findScratchVM();
     if (!vm) return;
 
@@ -42,6 +43,8 @@
       let hasMotion = false;
       const rawBlocksByTarget = {};
       const rawCommentsByTarget = {};
+      const cleanCommentsByTarget = {};
+      let ghostCommentsCount = 0;
 
       const allSpriteNames = [];
       const allVariables = new Set();
@@ -114,9 +117,41 @@
           }
           if (target.comments && Object.keys(target.comments).length > 0) {
             rawCommentsByTarget[targetName] = { ...target.comments };
+            
+            // Pre-calculate clean comments and ghost count
+            const texts = Object.values(target.comments)
+              .filter(c => {
+                if (c && c.blockId && !targetBlocks[c.blockId]) {
+                  ghostCommentsCount++;
+                  return false;
+                }
+                return true;
+              })
+              .map(c => c && c.text)
+              .filter(t => typeof t === 'string' && t.trim().length > 0);
+            if (texts.length > 0) {
+              cleanCommentsByTarget[targetName] = texts;
+            }
           }
         });
       }
+
+      // Check snapshot cache
+      const snapshotFingerprintObj = {
+        blocks: rawBlocksByTarget,
+        comments: rawCommentsByTarget,
+        sprites: allSpriteNames,
+        vars: [...allVariables],
+        broadcasts: [...allBroadcasts],
+        editingTarget: editingTargetName,
+        ghostCommentsCount
+      };
+      
+      const snapshotJson = JSON.stringify(snapshotFingerprintObj);
+      if (force !== true && snapshotJson === lastSnapshotJson) {
+        return;
+      }
+      lastSnapshotJson = snapshotJson;
 
       window.postMessage(
         {
@@ -132,6 +167,8 @@
             hasMotion,
             rawBlocksByTarget,
             rawCommentsByTarget,
+            cleanCommentsByTarget,
+            ghostCommentsCount,
             editingTargetName,
             allSpriteNames,
             allVariables: [...allVariables],
@@ -314,7 +351,7 @@
             }
 
             const nonShadowCount = Object.values(newBlocks).filter(b => b && !b.shadow).length;
-            setTimeout(() => publishSnapshot(), 300);
+            setTimeout(() => publishSnapshot(true), 300);
             return { ok: true, count: nonShadowCount, method: 'xml+domToWorkspace', fallback: payload.fallback, targetSprite: payload.targetSprite, currentSprite: payload.currentSprite };
           } catch (xmlErr) {
             console.warn('[HUD Coach] Strategy 1 (XML) 실패, Strategy 2로 폴백:', xmlErr);
@@ -359,7 +396,7 @@
         }
       } catch (e) { /* ignore */ }
 
-      setTimeout(() => publishSnapshot(), 200);
+      setTimeout(() => publishSnapshot(true), 200);
       return { ok: true, count, method: 'direct+emitUpdate', fallback: payload.fallback, targetSprite: payload.targetSprite, currentSprite: payload.currentSprite };
 
     } catch (e) {
@@ -408,7 +445,7 @@
 
       // ── 스냅샷 요청 ──────────────────────────────────────
       if (ev.data.type === "REQUEST_SNAPSHOT") {
-        publishSnapshot();
+        publishSnapshot(true);
       }
 
       // ── AI 블록 주입 ──────────────────────────────────────
@@ -424,8 +461,119 @@
       if (ev.data.type === "APPLY_CUSTOM_BULK_UPDATE") {
         const result = applyBulkBlocksToVM(ev.data.payload.deparsedJson || ev.data.payload.customJson);
         console.log("[HUD Coach] Bulk update result:", result);
+        window.postMessage(
+          { source: "scratch-hud", type: "APPLY_RESULT", payload: {
+            ok: result.ok,
+            message: result.ok ? `✅ 총 ${result.successCount}개의 스프라이트에 AI 코드가 주입되었습니다.` : undefined,
+            error: result.ok ? undefined : result.errors.join(', ')
+          } },
+          "*"
+        );
+      }
+
+      // ── 전체 스프라이트 코드 지우기 (부분 삭제 지원) ───────────
+      if (ev.data.type === "CLEAR_WORKSPACE_PARTIAL") {
+        const result = cleanupWorkspacePartial(ev.data.payload);
+        window.postMessage(
+          { source: "scratch-hud", type: "APPLY_RESULT", payload: result },
+          "*"
+        );
+      }
+
+      // ── 유령 주석 정리 ─────────────────────────────────────
+      if (ev.data.type === "CLEANUP_ORPHANED_COMMENTS") {
+        const result = cleanupOrphanedComments();
+        window.postMessage(
+          { source: "scratch-hud", type: "CLEANUP_RESULT", payload: result },
+          "*"
+        );
       }
     });
+  }
+
+  function cleanupWorkspacePartial({ clearBlocks, clearComments }) {
+    const vm = findScratchVM();
+    if (!vm || !vm.runtime || !vm.runtime.targets) return { ok: false, error: 'VM not found' };
+
+    vm.runtime.targets.forEach(t => {
+      // 1) 블록 삭제 처리
+      if (clearBlocks) {
+        if (t.blocks && t.blocks._blocks) {
+          t.blocks._blocks = {};
+        }
+        // 주석은 지우지 않는 경우, 결합 주석들의 blockId 관계를 null로 풀어 독립 주석으로 생존시킴
+        if (!clearComments && t.comments) {
+          Object.values(t.comments).forEach(c => {
+            if (c) {
+              c.blockId = null;
+            }
+          });
+        }
+      }
+
+      // 2) 주석 삭제 처리
+      if (clearComments) {
+        if (t.comments) {
+          t.comments = {};
+        }
+      }
+    });
+
+    try {
+      if (typeof vm.emitWorkspaceUpdate === 'function') {
+        vm.emitWorkspaceUpdate();
+      }
+
+      // 블록과 주석 둘 다 완전히 지우는 경우에는 잔상 제거를 위해 Blockly 전체 클리어 실행
+      if (clearBlocks && clearComments) {
+        const SB = window.ScratchBlocks || window.Blockly;
+        if (SB && typeof SB.getMainWorkspace === 'function') {
+          const ws = SB.getMainWorkspace();
+          if (ws) {
+            ws.clear();
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[HUD Coach] emitWorkspaceUpdate or Blockly clear failed:', e);
+    }
+    
+    setTimeout(() => publishSnapshot(true), 300);
+
+    let msg = '✅ ';
+    if (clearBlocks && clearComments) msg += '모든 블록 코드와 주석이 삭제되었습니다.';
+    else if (clearBlocks) msg += '모든 블록 코드가 삭제되었습니다. (주석 보존)';
+    else if (clearComments) msg += '모든 주석이 삭제되었습니다. (블록 코드 보존)';
+
+    return { ok: true, message: msg };
+  }
+
+  function cleanupOrphanedComments() {
+    const vm = findScratchVM();
+    if (!vm || !vm.runtime || !vm.runtime.targets) return { ok: false, count: 0, error: 'VM not found' };
+    
+    let clearedCount = 0;
+    vm.runtime.targets.forEach(t => {
+      if (t.comments && Object.keys(t.comments).length > 0) {
+        const blocksDict = (t.blocks && t.blocks._blocks) ? t.blocks._blocks : {};
+        Object.entries(t.comments).forEach(([commentId, comment]) => {
+          if (comment.blockId && !blocksDict[comment.blockId]) {
+            delete t.comments[commentId];
+            clearedCount++;
+          }
+        });
+      }
+    });
+    
+    if (clearedCount > 0) {
+      try {
+        if (typeof vm.emitWorkspaceUpdate === 'function') {
+          vm.emitWorkspaceUpdate();
+        }
+      } catch (e) {}
+      setTimeout(() => publishSnapshot(true), 300);
+    }
+    return { ok: true, count: clearedCount };
   }
 
   function applyBulkBlocksToVM(deparsedJson) {
@@ -504,7 +652,7 @@
       }
     } catch (e) {}
 
-    publishSnapshot();
+    publishSnapshot(true);
 
     return { ok: successCount > 0, successCount, errors: errorMsgs };
   }

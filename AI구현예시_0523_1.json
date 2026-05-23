@@ -1,0 +1,319 @@
+{
+  "열기구": [
+    [
+      {
+        "opcode": "event_whenflagclicked"
+      },
+      {
+        "opcode": "motion_gotoxy"
+      },
+      {
+        "opcode": "looks_setsizeto"
+      },
+      {
+        "opcode": "control_forever",
+        "inputs": {
+          "SUBSTACK": [
+            {
+              "opcode": "motion_gotoxy",
+              "inputs": {
+                "X": {
+                  "opcode": "operator_random"
+                }
+              }
+            },
+            {
+              "opcode": "control_create_clone_of"
+            },
+            {
+              "opcode": "control_wait"
+            }
+          ]
+        }
+      }
+    ]
+  ],
+  "달걀": [
+    [
+      {
+        "opcode": "event_whenflagclicked"
+      },
+      {
+        "opcode": "data_setvariableto",
+        "fields": {
+          "VARIABLE": "점수"
+        }
+      },
+      {
+        "opcode": "looks_hide"
+      }
+    ],
+    [
+      {
+        "opcode": "control_start_as_clone"
+      },
+      {
+        "opcode": "looks_switchcostumeto"
+      },
+      {
+        "opcode": "motion_gotoxy",
+        "inputs": {
+          "X": {
+            "opcode": "sensing_of",
+            "fields": {
+              "PROPERTY": "x position",
+              "OBJECT": "열기구"
+            }
+          },
+          "Y": {
+            "opcode": "sensing_of",
+            "fields": {
+              "PROPERTY": "y position",
+              "OBJECT": "열기구"
+            }
+          }
+        }
+      },
+      {
+        "opcode": "looks_show"
+      },
+      {
+        "opcode": "control_repeat_until",
+        "inputs": {
+          "CONDITION": [
+            {
+              "opcode": "sensing_touchingcolor"
+            }
+          ],
+          "SUBSTACK": [
+            {
+              "opcode": "motion_changeyby"
+            },
+            {
+              "opcode": "control_if",
+              "inputs": {
+                "CONDITION": [
+                  {
+                    "opcode": "sensing_touchingobject"
+                  }
+                ],
+                "SUBSTACK": [
+                  {
+                    "opcode": "data_changevariableby",
+                    "fields": {
+                      "VARIABLE": "점수"
+                    }
+                  },
+                  {
+                    "opcode": "control_delete_this_clone"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "opcode": "looks_switchcostumeto"
+      },
+      {
+        "opcode": "control_wait"
+      },
+      {
+        "opcode": "control_delete_this_clone"
+      }
+    ],
+    [
+      {
+        "opcode": "event_whenflagclicked"
+      },
+      {
+        "opcode": "data_setvariableto",
+        "fields": {
+          "VARIABLE": "점수"
+        }
+      },
+      {
+        "opcode": "looks_hide"
+      }
+    ],
+    [
+      {
+        "opcode": "control_start_as_clone"
+      },
+      {
+        "opcode": "looks_switchcostumeto"
+      },
+      {
+        "opcode": "motion_gotoxy",
+        "inputs": {
+          "X": {
+            "opcode": "sensing_of",
+            "fields": {
+              "PROPERTY": "x position",
+              "OBJECT": "열기구"
+            }
+          },
+          "Y": {
+            "opcode": "sensing_of",
+            "fields": {
+              "PROPERTY": "y position",
+              "OBJECT": "열기구"
+            }
+          }
+        }
+      },
+      {
+        "opcode": "looks_show"
+      },
+      {
+        "opcode": "control_repeat_until",
+        "inputs": {
+          "CONDITION": [
+            {
+              "opcode": "sensing_touchingcolor"
+            }
+          ],
+          "SUBSTACK": [
+            {
+              "opcode": "motion_changeyby"
+            },
+            {
+              "opcode": "control_if",
+              "inputs": {
+                "CONDITION": [
+                  {
+                    "opcode": "sensing_touchingobject"
+                  }
+                ],
+                "SUBSTACK": [
+                  {
+                    "opcode": "data_changevariableby",
+                    "fields": {
+                      "VARIABLE": "점수"
+                    }
+                  },
+                  {
+                    "opcode": "control_delete_this_clone"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "opcode": "looks_switchcostumeto"
+      },
+      {
+        "opcode": "control_wait"
+      },
+      {
+        "opcode": "control_delete_this_clone"
+      }
+    ]
+  ],
+  "바구니": [
+    [
+      {
+        "opcode": "event_whenflagclicked"
+      },
+      {
+        "opcode": "motion_sety"
+      },
+      {
+        "opcode": "control_forever",
+        "inputs": {
+          "SUBSTACK": [
+            {
+              "opcode": "motion_setx",
+              "inputs": {
+                "X": {
+                  "opcode": "sensing_of",
+                  "fields": {
+                    "PROPERTY": "x position",
+                    "OBJECT": "양"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    [
+      {
+        "opcode": "event_whenflagclicked"
+      },
+      {
+        "opcode": "motion_sety"
+      },
+      {
+        "opcode": "control_forever",
+        "inputs": {
+          "SUBSTACK": [
+            {
+              "opcode": "motion_setx",
+              "inputs": {
+                "X": {
+                  "opcode": "sensing_of",
+                  "fields": {
+                    "PROPERTY": "x position",
+                    "OBJECT": "양"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  ],
+  "양": [
+    [
+      {
+        "opcode": "event_whenflagclicked"
+      },
+      {
+        "opcode": "motion_gotoxy"
+      },
+      {
+        "opcode": "control_forever",
+        "inputs": {
+          "SUBSTACK": [
+            {
+              "opcode": "control_if",
+              "inputs": {
+                "CONDITION": [
+                  {
+                    "opcode": "sensing_keypressed"
+                  }
+                ],
+                "SUBSTACK": [
+                  {
+                    "opcode": "motion_changexby"
+                  }
+                ]
+              }
+            },
+            {
+              "opcode": "control_if",
+              "inputs": {
+                "CONDITION": [
+                  {
+                    "opcode": "sensing_keypressed"
+                  }
+                ],
+                "SUBSTACK": [
+                  {
+                    "opcode": "motion_changexby"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  ]
+}

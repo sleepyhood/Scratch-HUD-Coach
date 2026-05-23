@@ -197,13 +197,14 @@ class ScratchParser {
 
     for (const blockDef of sequence) {
       if (!blockDef || !blockDef.opcode) continue;
+      const healedBlockDef = ScratchParser._healBlock(blockDef);
       const id = ScratchParser.generateId();
       ids.push(id);
 
       // 기본 블록 골격
       flatBlocks[id] = {
         id,
-        opcode: blockDef.opcode,
+        opcode: healedBlockDef.opcode,
         next: null,
         parent: parentId,
         inputs: {},
@@ -215,13 +216,13 @@ class ScratchParser {
       };
 
       // comment 처리
-      if (blockDef.comment) {
-        flatBlocks[id].comment = blockDef.comment;
+      if (healedBlockDef.comment) {
+        flatBlocks[id].comment = healedBlockDef.comment;
       }
 
       // fields 처리
-      if (blockDef.fields) {
-        for (const [fKey, fVal] of Object.entries(blockDef.fields)) {
+      if (healedBlockDef.fields) {
+        for (const [fKey, fVal] of Object.entries(healedBlockDef.fields)) {
           if (typeof fVal === 'object' && fVal !== null) {
             flatBlocks[id].fields[fKey] = fVal; // 이미 VM 포맷
           } else {
@@ -231,8 +232,8 @@ class ScratchParser {
       }
 
       // inputs 처리 (재귀)
-      if (blockDef.inputs) {
-        ScratchParser._processInputs(blockDef.inputs, id, flatBlocks);
+      if (healedBlockDef.inputs) {
+        ScratchParser._processInputs(healedBlockDef.inputs, id, flatBlocks);
       }
     }
 
@@ -333,6 +334,114 @@ class ScratchParser {
       }
     }
     return { ok: true };
+  }
+
+  static _healBlock(blockDef) {
+    if (!blockDef || !blockDef.opcode) return blockDef;
+
+    // Shallow copy blockDef to avoid mutating original source if cached
+    const healed = {
+      ...blockDef,
+      inputs: blockDef.inputs ? { ...blockDef.inputs } : {},
+      fields: blockDef.fields ? { ...blockDef.fields } : {}
+    };
+
+    const menuRules = {
+      'sensing_of': {
+        inputName: 'OBJECT',
+        menuOpcode: 'sensing_of_object_menu',
+        menuField: 'OBJECT'
+      },
+      'sensing_touchingobject': {
+        inputName: 'TOUCHINGOBJECTMENU',
+        menuOpcode: 'sensing_touchingobjectmenu',
+        menuField: 'TOUCHINGOBJECTMENU'
+      },
+      'sensing_distanceto': {
+        inputName: 'DISTANCETOMENU',
+        menuOpcode: 'sensing_distancetomenu',
+        menuField: 'DISTANCETOMENU'
+      },
+      'control_create_clone_of': {
+        inputName: 'CLONE_OPTION',
+        menuOpcode: 'control_create_clone_of_menu',
+        menuField: 'CLONE_OPTION'
+      },
+      'looks_switchcostumeto': {
+        inputName: 'COSTUME',
+        menuOpcode: 'looks_costume',
+        menuField: 'COSTUME'
+      },
+      'looks_switchbackdropto': {
+        inputName: 'BACKDROP',
+        menuOpcode: 'looks_backdrops',
+        menuField: 'BACKDROP'
+      },
+      'sound_play': {
+        inputName: 'SOUND_MENU',
+        menuOpcode: 'sound_sounds_menu',
+        menuField: 'SOUND_MENU'
+      },
+      'sound_playuntildone': {
+        inputName: 'SOUND_MENU',
+        menuOpcode: 'sound_sounds_menu',
+        menuField: 'SOUND_MENU'
+      },
+      'event_broadcast': {
+        inputName: 'BROADCAST_INPUT',
+        menuOpcode: 'event_broadcast_menu',
+        menuField: 'BROADCAST_OPTION'
+      },
+      'event_broadcastandwait': {
+        inputName: 'BROADCAST_INPUT',
+        menuOpcode: 'event_broadcast_menu',
+        menuField: 'BROADCAST_OPTION'
+      }
+    };
+
+    const rule = menuRules[healed.opcode];
+    if (rule) {
+      // 1. Check if the value was mistakenly placed in fields
+      let rawValue = null;
+      if (healed.fields[rule.inputName] !== undefined) {
+        rawValue = healed.fields[rule.inputName];
+        delete healed.fields[rule.inputName];
+      } else if (healed.fields[rule.menuField] !== undefined) {
+        rawValue = healed.fields[rule.menuField];
+        delete healed.fields[rule.menuField];
+      }
+
+      // 2. Check if the value was placed directly as a primitive in inputs
+      if (rawValue === null && healed.inputs[rule.inputName] !== undefined) {
+        const inputVal = healed.inputs[rule.inputName];
+        if (typeof inputVal === 'string' || typeof inputVal === 'number') {
+          rawValue = inputVal;
+        }
+      }
+
+      // If we found a raw value that needs to be nested in a menu block
+      if (rawValue !== null) {
+        healed.inputs[rule.inputName] = {
+          opcode: rule.menuOpcode,
+          fields: {
+            [rule.menuField]: String(rawValue)
+          }
+        };
+      }
+    }
+
+    // Recursively heal blocks inside inputs (SUBSTACKs and nested condition blocks)
+    for (const [key, val] of Object.entries(healed.inputs)) {
+      if (Array.isArray(val)) {
+        // SUBSTACK / block sequence: map recursively
+        healed.inputs[key] = val.map(b => ScratchParser._healBlock(b));
+      } else if (typeof val === 'object' && val !== null && val.opcode) {
+        // Nested block object: heal recursively
+        healed.inputs[key] = ScratchParser._healBlock(val);
+      }
+    }
+
+    return healed;
   }
 }
 

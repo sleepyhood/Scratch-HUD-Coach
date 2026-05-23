@@ -30,24 +30,6 @@
       <!-- Tab 1: 가이드북 생성기 -->
       <div id="hud-tab-content-guidebook" class="hud-tab-content active">
 
-      <div class="hud-section" style="margin-top: 4px; border: 2px solid #6366f1; background: #eef2ff;">
-        <h4 style="color: #4338ca; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin: 0;" id="btn-toggle-hud-ai-guide">
-          <span>🤖 AI 프롬프트 가이드 (실시간 환경 연동)</span>
-          <span id="hud-ai-guide-arrow">▼</span>
-        </h4>
-        <div id="hud-ai-guide-content" style="display: none; margin-top: 12px;">
-          <div style="font-size:11px; color:#475569; margin-bottom:6px; line-height:1.5;">
-            복사하여 ChatGPT 등 AI에게 전달하면 현재 환경에 맞는 완벽한 블록 JSON을 만들어줍니다.
-          </div>
-          <textarea id="hud-ai-prompt-preview" readonly style="width: 100%; height: 160px; font-size: 10px; font-family: monospace; background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
-          <div style="margin-top:8px;">
-            <button class="ai-btn" id="btn-hud-copy-ai-prompt" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
-              📋 가이드 전체 복사
-            </button>
-          </div>
-        </div>
-      </div>
-
       <div class="hud-section" style="margin-top: 4px;">
         <h4>🔍 1단계: 원본 JSON (사전형)</h4>
         <div class="hud-card">
@@ -118,16 +100,67 @@
 
       <!-- Tab 2: 블록 주입기 -->
       <div id="hud-tab-content-injector" class="hud-tab-content">
-        <div class="hud-section" style="margin-top: 4px;">
-          <h4 style="color: #4f46e5; margin-bottom: 8px;">🧩 레퍼런스 블록 템플릿</h4>
-          <div class="hud-card" style="padding: 12px;">
-            <div style="margin-bottom: 12px;">
-              <select id="hud-injector-category" class="hud-select" style="width: 100%;">
-                <option value="">카테고리 로딩 중...</option>
-              </select>
+
+        <div class="hud-section" style="margin-top: 4px; border: 2px solid #6366f1; background: #eef2ff;">
+          <h4 style="color: #4338ca; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin: 0;" id="btn-toggle-hud-ai-guide">
+            <span>🤖 AI 프롬프트 가이드 (실시간 환경 연동)</span>
+            <span id="hud-ai-guide-arrow">▼</span>
+          </h4>
+          <div id="hud-ai-guide-content" style="display: none; margin-top: 12px;">
+            <div style="font-size:11px; color:#475569; margin-bottom:6px; line-height:1.5;">
+              복사하여 ChatGPT 등 AI에게 전달하면 현재 환경에 맞는 완벽한 블록 JSON을 만들어줍니다.
             </div>
-            <div id="hud-injector-list" style="max-height: 250px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px;">
-              <!-- 블록 리스트 렌더링 영역 -->
+            <textarea id="hud-ai-prompt-preview" readonly style="width: 100%; height: 160px; font-size: 10px; font-family: monospace; background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+            <div style="margin-top:6px; display:flex; align-items:center; gap:6px; padding:4px 0; border-top:1px dashed rgba(0,0,0,0.08);">
+              <input type="checkbox" id="hud-cb-include-comments" style="cursor:pointer; width:14px; height:14px; accent-color:#6366f1;">
+              <label for="hud-cb-include-comments" style="font-size:11px; color:#475569; cursor:pointer; user-select:none; line-height:1.4;">
+                📝 프로젝트 내 주석(구현 지침) 포함
+              </label>
+            </div>
+            <div id="hud-ghost-cleanup-container" style="margin-top:6px; display:none; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:6px; background:#fff1f2; border:1px solid #fecdd3;">
+              <span style="font-size:11px; color:#be123c; display:flex; align-items:center; gap:4px;">
+                ⚠️ 유령 주석 <strong id="hud-ghost-count">0</strong>개 감지됨
+              </span>
+              <button id="hud-btn-clean-ghost" style="padding:4px 8px; font-size:10px; border-radius:4px; background:#e11d48; color:white; border:none; cursor:pointer; font-weight:bold;">
+                정리하기
+              </button>
+            </div>
+            <div style="margin-top:8px;">
+              <button class="ai-btn" id="btn-hud-copy-ai-prompt" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                📋 가이드 전체 복사
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-section" style="margin-top: 8px;">
+          <h4 style="color: #4f46e5; margin-bottom: 8px;">⚡ AI 생성 JSON 즉시 주입</h4>
+          <div class="hud-card" style="padding: 12px;">
+            <textarea id="hud-custom-json-input" placeholder="AI가 생성한 JSON 스키마를 여기에 붙여넣으세요..." style="width: 100%; height: 120px; font-size: 10px; font-family: monospace; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; outline: none; resize: vertical; box-sizing: border-box; margin-bottom: 8px;"></textarea>
+            <button class="ai-btn" id="btn-hud-instant-inject" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
+              🚀 즉시 주입하기
+            </button>
+          </div>
+        </div>
+
+        <div class="hud-section" style="margin-top: 8px;">
+          <h4 style="color: #e11d48; margin-bottom: 8px;">🗑️ 워크스페이스 관리 도구</h4>
+          <div class="hud-card" style="padding: 12px; background: #fff1f2; border: 1px solid #fecdd3;">
+            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 10px; border-bottom: 1px dashed rgba(225, 29, 72, 0.2); padding-bottom: 8px;">
+              <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #9f1239; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="hud-clear-blocks-cb" checked style="cursor: pointer; width: 13px; height: 13px; accent-color: #ef4444;">
+                🧩 블록 삭제
+              </label>
+              <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #9f1239; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="hud-clear-comments-cb" checked style="cursor: pointer; width: 13px; height: 13px; accent-color: #ef4444;">
+                📝 주석 삭제
+              </label>
+            </div>
+            <button class="ai-btn" id="btn-hud-clear-workspace" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+              🗑️ 선택한 요소 지우기
+            </button>
+            <div id="hud-clear-warning-desc" style="font-size: 9.5px; color: #be123c; margin-top: 6px; text-align: center; line-height: 1.4;">
+              선택한 요소가 모든 스프라이트에서 영구 삭제됩니다.
             </div>
           </div>
         </div>
@@ -166,7 +199,6 @@
     });
   });
 
-  // AI Prompt Guide logic
   const AI_PROMPT_BASE = `[시스템 지침]
 당신은 스크래치 3.0 코딩 AI 어시스턴트입니다.
 사용자가 제공하는 스프라이트 시나리오에 맞게 다음 JSON 스키마를 준수하여 코드 블록을 생성하세요.
@@ -177,7 +209,7 @@
   "스프라이트이름1": [
     [
       { "opcode": "event_whenflagclicked" },
-      { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+      { "opcode": "motion_movesteps", "inputs": { "STEPS": 10 } }
     ]
   ]
 }
@@ -185,22 +217,25 @@
 - 시작 이벤트(깃발): { "opcode": "event_whenflagclicked" }
 - 키 클릭 이벤트: { "opcode": "event_whenkeypressed", "fields": { "KEY_OPTION": "space" } }
 - 신호 받았을 때: { "opcode": "event_whenbroadcastreceived", "fields": { "BROADCAST_OPTION": "신호명" } }
-- 신호 보내기: { "opcode": "event_broadcast", "inputs": { "BROADCAST_INPUT": [11, "신호명", "broadcast_id"] } }
-- ~초 기다리기: { "opcode": "control_wait", "inputs": { "DURATION": [4, 10, "1"] } }
-- 10번 반복하기: { "opcode": "control_repeat", "inputs": { "TIMES": [4, 10, "10"], "SUBSTACK": [ ... ] } }
+- 신호 보내기: { "opcode": "event_broadcast", "inputs": { "BROADCAST_INPUT": { "opcode": "event_broadcast_menu", "fields": { "BROADCAST_OPTION": "신호명" } } } }
+- ~초 기다리기: { "opcode": "control_wait", "inputs": { "DURATION": 1 } }
+- 10번 반복하기: { "opcode": "control_repeat", "inputs": { "TIMES": 10, "SUBSTACK": [ ... ] } }
 - 무한 반복하기: { "opcode": "control_forever", "inputs": { "SUBSTACK": [ ... ] } }
 - 만약 ~라면: { "opcode": "control_if", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ] } }
 - 만약 ~라면, 아니면: { "opcode": "control_if_else", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ], "SUBSTACK2": [ ... ] } }
-- 변수 정하기: { "opcode": "data_setvariableto", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "0"] } }
-- 변수 바꾸기: { "opcode": "data_changevariableby", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "1"] } }
-- 닿았는가 감지: { "opcode": "sensing_touchingobject", "inputs": { "TOUCHINGOBJECTMENU": [1, [10, "_mouse_", "mouse_id"]] } }
-- x, y 좌표 이동: { "opcode": "motion_gotoxy", "inputs": { "X": [4, 10, "0"], "Y": [4, 10, "0"] } }
-- 10만큼 움직이기: { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+- 변수 정하기: { "opcode": "data_setvariableto", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": 0 } }
+- 변수 바꾸기: { "opcode": "data_changevariableby", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": 1 } }
+- 닿았는가 감지: { "opcode": "sensing_touchingobject", "inputs": { "TOUCHINGOBJECTMENU": { "opcode": "sensing_touchingobjectmenu", "fields": { "TOUCHINGOBJECTMENU": "_mouse_" } } } }
+- x, y 좌표 이동: { "opcode": "motion_gotoxy", "inputs": { "X": 0, "Y": 0 } }
+- 10만큼 움직이기: { "opcode": "motion_movesteps", "inputs": { "STEPS": 10 } }
+- 모양 바꾸기: { "opcode": "looks_switchcostumeto", "inputs": { "COSTUME": { "opcode": "looks_costume", "fields": { "COSTUME": "모양명" } } } }
+- ~의 ~좌표/값 감지: { "opcode": "sensing_of", "fields": { "PROPERTY": "x position" }, "inputs": { "OBJECT": { "opcode": "sensing_of_object_menu", "fields": { "OBJECT": "스프라이트명" } } } }
 
 주의:
 1. Scratch 3.0 공식 opcode만 사용하세요.
 2. UUID는 부여하지 마세요.
-3. 순수한 JSON 텍스트만 출력하세요.`;
+3. inputs 필드에는 수식 블록 객체 혹은 단순 원시값(숫자/문자열)을 입력해야 합니다. 대괄호 형식의 내부 VM용 원시값 배열(예: [4, 10, "1"])은 절대 사용하지 마세요.
+4. 순수한 JSON 텍스트만 출력하세요.`;
 
   const btnToggleAiGuide = root.querySelector('#btn-toggle-hud-ai-guide');
   const aiGuideContent = root.querySelector('#hud-ai-guide-content');
@@ -223,6 +258,196 @@
   });
 
   aiPromptPreview.value = AI_PROMPT_BASE;
+
+  // ── 체크박스: 프로젝트 내 주석 포함 옵션 ──────────────────────────
+  const cbIncludeComments = root.querySelector('#hud-cb-include-comments');
+  let hudIncludeComments = true; // default
+
+  // Load saved preference from storage
+  chrome.storage.sync.get(['hud_include_comments'], (data) => {
+    if (typeof data.hud_include_comments === 'boolean') {
+      hudIncludeComments = data.hud_include_comments;
+    }
+    if (cbIncludeComments) cbIncludeComments.checked = hudIncludeComments;
+  });
+
+  if (cbIncludeComments) {
+    cbIncludeComments.addEventListener('change', (e) => {
+      hudIncludeComments = e.target.checked;
+      chrome.storage.sync.set({ hud_include_comments: hudIncludeComments });
+      // Regenerate prompt immediately
+      rebuildAiPrompt();
+    });
+  }
+
+  // Sync if storage changes from popup
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === 'sync' && typeof changes.hud_include_comments !== 'undefined') {
+      hudIncludeComments = changes.hud_include_comments.newValue;
+      if (cbIncludeComments) cbIncludeComments.checked = hudIncludeComments;
+      rebuildAiPrompt();
+    }
+  });
+
+  const btnCleanGhost = root.querySelector('#hud-btn-clean-ghost');
+  if (btnCleanGhost) {
+    btnCleanGhost.addEventListener('click', () => {
+      window.postMessage({ source: "scratch-hud-content", type: "CLEANUP_ORPHANED_COMMENTS" }, "*");
+    });
+  }
+
+  // ── 탭 2 이벤트 연동 ──────────────────────────────────────────────
+  const btnInstantInject = root.querySelector('#btn-hud-instant-inject');
+  if (btnInstantInject) {
+    btnInstantInject.addEventListener('click', () => {
+      const jsonStr = root.querySelector('#hud-custom-json-input').value;
+      if (!jsonStr.trim()) {
+        showAiStatus('JSON 코드를 입력해주세요.', 'warning');
+        return;
+      }
+      try {
+        const parsedJson = JSON.parse(jsonStr);
+        let deparsedJson = {};
+        if (window.ScratchParser) {
+          for (const [targetName, sequences] of Object.entries(parsedJson)) {
+            if (!Array.isArray(sequences) || sequences.length === 0) continue;
+            let maxY = 80;
+            if (lastSnapshot && lastSnapshot.rawBlocksByTarget && lastSnapshot.rawBlocksByTarget[targetName]) {
+              const blocks = lastSnapshot.rawBlocksByTarget[targetName];
+              let maxFoundY = null;
+              Object.values(blocks).forEach(b => {
+                if (b.topLevel && b.y !== undefined) {
+                  if (maxFoundY === null || b.y > maxFoundY) maxFoundY = b.y;
+                }
+              });
+              if (maxFoundY !== null) maxY = maxFoundY + 100;
+            }
+            deparsedJson[targetName] = window.ScratchParser.deparse(sequences, { x: 80, y: maxY });
+          }
+          window.postMessage({
+            source: "scratch-hud-content",
+            type: "APPLY_CUSTOM_BULK_UPDATE",
+            payload: { deparsedJson: deparsedJson }
+          }, "*");
+          root.querySelector('#hud-custom-json-input').value = '';
+        } else {
+          showAiStatus('❌ ScratchParser를 불러올 수 없습니다.', 'error');
+        }
+      } catch (e) {
+        showAiStatus('❌ JSON 파싱 오류: ' + e.message, 'error');
+      }
+    });
+  }
+
+  const cbClearBlocks = root.querySelector('#hud-clear-blocks-cb');
+  const cbClearComments = root.querySelector('#hud-clear-comments-cb');
+  const btnClearWorkspace = root.querySelector('#btn-hud-clear-workspace');
+  const clearWarningDesc = root.querySelector('#hud-clear-warning-desc');
+
+  function updateClearButtonState() {
+    if (!cbClearBlocks || !cbClearComments || !btnClearWorkspace) return;
+    const clearBlocks = cbClearBlocks.checked;
+    const clearComments = cbClearComments.checked;
+
+    if (!clearBlocks && !clearComments) {
+      btnClearWorkspace.disabled = true;
+      btnClearWorkspace.style.opacity = '0.5';
+      btnClearWorkspace.style.cursor = 'not-allowed';
+      if (clearWarningDesc) {
+        clearWarningDesc.textContent = '지울 항목을 선택해 주세요.';
+        clearWarningDesc.style.color = '#64748b';
+      }
+    } else {
+      btnClearWorkspace.disabled = false;
+      btnClearWorkspace.style.opacity = '1';
+      btnClearWorkspace.style.cursor = 'pointer';
+      if (clearWarningDesc) {
+        clearWarningDesc.style.color = '#be123c';
+        if (clearBlocks && clearComments) {
+          clearWarningDesc.textContent = '선택한 요소가 모든 스프라이트에서 영구 삭제됩니다.';
+        } else if (clearBlocks) {
+          clearWarningDesc.textContent = '모든 블록이 영구 삭제되며, 주석은 보존됩니다.';
+        } else if (clearComments) {
+          clearWarningDesc.textContent = '모든 주석이 영구 삭제되며, 블록 코드는 보존됩니다.';
+        }
+      }
+    }
+  }
+
+  if (cbClearBlocks) cbClearBlocks.addEventListener('change', updateClearButtonState);
+  if (cbClearComments) cbClearComments.addEventListener('change', updateClearButtonState);
+
+  if (btnClearWorkspace) {
+    btnClearWorkspace.addEventListener('click', () => {
+      const clearBlocks = cbClearBlocks ? cbClearBlocks.checked : false;
+      const clearComments = cbClearComments ? cbClearComments.checked : false;
+      if (!clearBlocks && !clearComments) return;
+
+      let confirmMsg = '';
+      if (clearBlocks && clearComments) {
+        confirmMsg = "⚠️ 모든 스프라이트의 블록 코드와 주석을 완전히 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.";
+      } else if (clearBlocks) {
+        confirmMsg = "⚠️ 모든 스프라이트의 블록 코드를 삭제하시겠습니까?\n(주석은 독립 주석으로 변환되어 안전하게 보존됩니다.)";
+      } else if (clearComments) {
+        confirmMsg = "⚠️ 모든 스프라이트의 주석을 완전히 삭제하시겠습니까?\n(블록 코드는 안전하게 보존됩니다.)";
+      }
+
+      if (confirm(confirmMsg)) {
+        window.postMessage({
+          source: "scratch-hud-content",
+          type: "CLEAR_WORKSPACE_PARTIAL",
+          payload: { clearBlocks, clearComments }
+        }, "*");
+      }
+    });
+  }
+
+  // ── 프롬프트 재생성 함수 ──────────────────────────────────────────
+  function rebuildAiPrompt() {
+    const preview = root.querySelector('#hud-ai-prompt-preview');
+    if (!preview || !lastSnapshot) return;
+
+    const sprites = lastSnapshot.allSpriteNames || [];
+    const vars = lastSnapshot.allVariables || [];
+    const broadcasts = lastSnapshot.allBroadcasts || [];
+
+    let envText = '';
+    if (sprites.length > 0 || vars.length > 0 || broadcasts.length > 0) {
+      envText = `\n\n[현재 프로젝트 환경 정보]\n`;
+      envText += `- 스프라이트 목록: ${sprites.length > 0 ? sprites.join(', ') : '없음'}\n`;
+      envText += `- 변수/리스트 목록: ${vars.length > 0 ? vars.join(', ') : '없음'}\n`;
+      envText += `- 방송 신호 목록: ${broadcasts.length > 0 ? broadcasts.join(', ') : '없음'}\n\n`;
+      envText += `주의: 위 목록에 명시된 스프라이트 이름, 변수 이름, 방송 신호만 사용해 코드를 생성하고 절대 임의의 이름을 새로 만들지 마십시오.`;
+    }
+
+    let commentsText = '';
+    const ghostCommentsCount = lastSnapshot.ghostCommentsCount || 0;
+    const cleanCommentsByTarget = lastSnapshot.cleanCommentsByTarget || {};
+    const commentEntries = [];
+
+    for (const [targetName, texts] of Object.entries(cleanCommentsByTarget)) {
+      if (texts && texts.length > 0) {
+        commentEntries.push(`- ${targetName}:\n${texts.map(t => `    * ${t.trim()}`).join('\n')}`);
+      }
+    }
+
+    if (hudIncludeComments && commentEntries.length > 0) {
+      commentsText = `\n\n[스프라이트별 구현 지침 (작성된 주석)]\n${commentEntries.join('\n')}`;
+    }
+
+    const ghostContainer = root.querySelector('#hud-ghost-cleanup-container');
+    const ghostCountEl = root.querySelector('#hud-ghost-count');
+    if (ghostContainer && ghostCountEl) {
+      if (ghostCommentsCount > 0) {
+        ghostCountEl.textContent = ghostCommentsCount;
+        ghostContainer.style.display = 'flex';
+      } else {
+        ghostContainer.style.display = 'none';
+      }
+    }
+
+    preview.value = AI_PROMPT_BASE + envText + commentsText;
+  }
 
 
   let lastSnapshot = null;
@@ -262,22 +487,16 @@
         lastParsedByTarget = null;
       }
       
-      // Update AI Prompt Guide with environment variables
-      const aiPromptPreview = root.querySelector('#hud-ai-prompt-preview');
-      if (aiPromptPreview && lastSnapshot) {
-        const sprites = lastSnapshot.allSpriteNames || [];
-        const vars = lastSnapshot.allVariables || [];
-        const broadcasts = lastSnapshot.allBroadcasts || [];
+      // Update AI Prompt Guide with environment variables and optional comments
+      rebuildAiPrompt();
+    }
 
-        let envText = "";
-        if (sprites.length > 0 || vars.length > 0 || broadcasts.length > 0) {
-          envText = `\n\n[현재 프로젝트 환경 정보]\n`;
-          envText += `- 스프라이트 목록: ${sprites.length > 0 ? sprites.join(", ") : "없음"}\n`;
-          envText += `- 변수/리스트 목록: ${vars.length > 0 ? vars.join(", ") : "없음"}\n`;
-          envText += `- 방송 신호 목록: ${broadcasts.length > 0 ? broadcasts.join(", ") : "없음"}\n\n`;
-          envText += `주의: 위 목록에 명시된 스프라이트 이름, 변수 이름, 방송 신호만 사용해 코드를 생성하고 절대 임의의 이름을 새로 만들지 마십시오.`;
-        }
-        aiPromptPreview.value = AI_PROMPT_BASE + envText;
+    if (data.type === "CLEANUP_RESULT") {
+      const res = data.payload;
+      if (res.ok) {
+        showAiStatus(`✅ 유령 주석 ${res.count}개를 성공적으로 정리했습니다!`, 'success');
+      } else {
+        showAiStatus(`❌ 유령 주석 정리 실패: ${res.error || '알 수 없는 오류'}`, 'error');
       }
     }
   });
@@ -295,6 +514,9 @@
     if (!msg || !msg.type) return;
     if (msg.type === "toggle-hud")
       root.classList.contains("open") ? closeHUD() : openHUD();
+    if (msg.type === "CLEANUP_ORPHANED_COMMENTS") {
+      window.postMessage({ source: "scratch-hud-content", type: "CLEANUP_ORPHANED_COMMENTS" }, "*");
+    }
   });
 
   // Load initial settings & bind change events
