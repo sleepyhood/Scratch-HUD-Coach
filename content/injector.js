@@ -15,11 +15,97 @@
 
   let templatesData = {};
   let currentSnapshot = null;
+  let customInjectFired = false;
+
+  let lastSavedSprites = [];
+  let lastSavedVariables = [];
+  let lastSavedBroadcasts = [];
+
+  function arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
 
   // Listen to workspace snapshot to keep track of current target and its blocks
   window.addEventListener("message", (ev) => {
     if (ev.data && ev.data.source === "scratch-hud" && ev.data.type === "WORKSPACE_SNAPSHOT") {
       currentSnapshot = ev.data.payload;
+      
+      // Save environment data for the popup UI and AI Guide
+      if (currentSnapshot) {
+        const newSprites = currentSnapshot.allSpriteNames || [];
+        const newVars = currentSnapshot.allVariables || [];
+        const newBroadcasts = currentSnapshot.allBroadcasts || [];
+
+        if (!arraysEqual(lastSavedSprites, newSprites) ||
+            !arraysEqual(lastSavedVariables, newVars) ||
+            !arraysEqual(lastSavedBroadcasts, newBroadcasts)) {
+          
+          lastSavedSprites = newSprites;
+          lastSavedVariables = newVars;
+          lastSavedBroadcasts = newBroadcasts;
+
+          chrome.storage.local.set({
+            custom_sprites_list: newSprites,
+            custom_variables_list: newVars,
+            custom_broadcasts_list: newBroadcasts
+          });
+        }
+      }
+
+      // AI Custom JSON Auto-Inject Check
+      if (!customInjectFired) {
+        customInjectFired = true; // Lock synchronously to prevent multiple rapid triggers
+        chrome.storage.local.get(["custom_inject_pending", "custom_inject_json"], (res) => {
+          if (res.custom_inject_pending && res.custom_inject_json) {
+            try {
+              const parsedJson = JSON.parse(res.custom_inject_json);
+              
+              // Deparse sequences to flat blocks in content script where ScratchParser is available
+              const deparsedJson = {};
+              if (window.ScratchParser) {
+                for (const [targetName, sequences] of Object.entries(parsedJson)) {
+                  if (!Array.isArray(sequences) || sequences.length === 0) continue;
+                  
+                  let maxY = 80;
+                  if (currentSnapshot && currentSnapshot.rawBlocksByTarget && currentSnapshot.rawBlocksByTarget[targetName]) {
+                    const blocks = currentSnapshot.rawBlocksByTarget[targetName];
+                    let maxFoundY = null;
+                    Object.values(blocks).forEach(b => {
+                      if (b.topLevel && b.y !== undefined) {
+                        if (maxFoundY === null || b.y > maxFoundY) maxFoundY = b.y;
+                      }
+                    });
+                    if (maxFoundY !== null) {
+                      maxY = maxFoundY + 100;
+                    }
+                  }
+                  
+                  deparsedJson[targetName] = window.ScratchParser.deparse(sequences, { x: 80, y: maxY });
+                }
+              }
+
+              // 1회성 주입을 위해 플래그 즉시 초기화
+              chrome.storage.local.set({ custom_inject_pending: false }, () => {
+                // Bulk Update 메시지 전송
+                window.postMessage({
+                  source: "scratch-hud-content",
+                  type: "APPLY_CUSTOM_BULK_UPDATE",
+                  payload: { deparsedJson: deparsedJson }
+                }, "*");
+              });
+            } catch (e) {
+              console.error("[HUD Coach] Custom Inject JSON parse error:", e);
+            }
+          } else {
+            // No pending injection found, release the lock
+            customInjectFired = false;
+          }
+        });
+      }
     }
   });
 
@@ -271,6 +357,18 @@
       } else {
         showToast(`❌ 오류: ${res.error}`, 'warning');
       }
+    }
+  });
+
+  // Listen for storage changes to allow multiple injections without reloading
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === "local" && changes.custom_inject_pending && changes.custom_inject_pending.newValue === true) {
+      customInjectFired = false;
+      // Request a snapshot immediately to trigger injection
+      window.postMessage({
+        source: "scratch-hud-content",
+        type: "REQUEST_SNAPSHOT"
+      }, "*");
     }
   });
 

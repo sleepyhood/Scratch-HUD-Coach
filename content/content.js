@@ -30,6 +30,24 @@
       <!-- Tab 1: 가이드북 생성기 -->
       <div id="hud-tab-content-guidebook" class="hud-tab-content active">
 
+      <div class="hud-section" style="margin-top: 4px; border: 2px solid #6366f1; background: #eef2ff;">
+        <h4 style="color: #4338ca; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin: 0;" id="btn-toggle-hud-ai-guide">
+          <span>🤖 AI 프롬프트 가이드 (실시간 환경 연동)</span>
+          <span id="hud-ai-guide-arrow">▼</span>
+        </h4>
+        <div id="hud-ai-guide-content" style="display: none; margin-top: 12px;">
+          <div style="font-size:11px; color:#475569; margin-bottom:6px; line-height:1.5;">
+            복사하여 ChatGPT 등 AI에게 전달하면 현재 환경에 맞는 완벽한 블록 JSON을 만들어줍니다.
+          </div>
+          <textarea id="hud-ai-prompt-preview" readonly style="width: 100%; height: 160px; font-size: 10px; font-family: monospace; background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+          <div style="margin-top:8px;">
+            <button class="ai-btn" id="btn-hud-copy-ai-prompt" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
+              📋 가이드 전체 복사
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="hud-section" style="margin-top: 4px;">
         <h4>🔍 1단계: 원본 JSON (사전형)</h4>
         <div class="hud-card">
@@ -148,6 +166,64 @@
     });
   });
 
+  // AI Prompt Guide logic
+  const AI_PROMPT_BASE = `[시스템 지침]
+당신은 스크래치 3.0 코딩 AI 어시스턴트입니다.
+사용자가 제공하는 스프라이트 시나리오에 맞게 다음 JSON 스키마를 준수하여 코드 블록을 생성하세요.
+
+[JSON 스키마 구조 및 대표 블록 가이드]
+최상위 객체의 키는 스프라이트 이름이며, 값은 스크립트 시퀀스의 2차원 배열입니다.
+{
+  "스프라이트이름1": [
+    [
+      { "opcode": "event_whenflagclicked" },
+      { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+    ]
+  ]
+}
+
+- 시작 이벤트(깃발): { "opcode": "event_whenflagclicked" }
+- 키 클릭 이벤트: { "opcode": "event_whenkeypressed", "fields": { "KEY_OPTION": "space" } }
+- 신호 받았을 때: { "opcode": "event_whenbroadcastreceived", "fields": { "BROADCAST_OPTION": "신호명" } }
+- 신호 보내기: { "opcode": "event_broadcast", "inputs": { "BROADCAST_INPUT": [11, "신호명", "broadcast_id"] } }
+- ~초 기다리기: { "opcode": "control_wait", "inputs": { "DURATION": [4, 10, "1"] } }
+- 10번 반복하기: { "opcode": "control_repeat", "inputs": { "TIMES": [4, 10, "10"], "SUBSTACK": [ ... ] } }
+- 무한 반복하기: { "opcode": "control_forever", "inputs": { "SUBSTACK": [ ... ] } }
+- 만약 ~라면: { "opcode": "control_if", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ] } }
+- 만약 ~라면, 아니면: { "opcode": "control_if_else", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ], "SUBSTACK2": [ ... ] } }
+- 변수 정하기: { "opcode": "data_setvariableto", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "0"] } }
+- 변수 바꾸기: { "opcode": "data_changevariableby", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "1"] } }
+- 닿았는가 감지: { "opcode": "sensing_touchingobject", "inputs": { "TOUCHINGOBJECTMENU": [1, [10, "_mouse_", "mouse_id"]] } }
+- x, y 좌표 이동: { "opcode": "motion_gotoxy", "inputs": { "X": [4, 10, "0"], "Y": [4, 10, "0"] } }
+- 10만큼 움직이기: { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+
+주의:
+1. Scratch 3.0 공식 opcode만 사용하세요.
+2. UUID는 부여하지 마세요.
+3. 순수한 JSON 텍스트만 출력하세요.`;
+
+  const btnToggleAiGuide = root.querySelector('#btn-toggle-hud-ai-guide');
+  const aiGuideContent = root.querySelector('#hud-ai-guide-content');
+  const aiGuideArrow = root.querySelector('#hud-ai-guide-arrow');
+  const aiPromptPreview = root.querySelector('#hud-ai-prompt-preview');
+  
+  btnToggleAiGuide.addEventListener('click', () => {
+    const isHidden = aiGuideContent.style.display === "none";
+    aiGuideContent.style.display = isHidden ? "block" : "none";
+    aiGuideArrow.textContent = isHidden ? "▲" : "▼";
+  });
+
+  root.querySelector('#btn-hud-copy-ai-prompt').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(aiPromptPreview.value);
+      showAiStatus('✅ AI 프롬프트 가이드가 클립보드에 복사되었습니다!', 'success');
+    } catch(e) {
+      showAiStatus('❌ 복사에 실패했습니다.', 'error');
+    }
+  });
+
+  aiPromptPreview.value = AI_PROMPT_BASE;
+
 
   let lastSnapshot = null;
   let lastParsedByTarget = null;
@@ -184,6 +260,24 @@
         }
       } else {
         lastParsedByTarget = null;
+      }
+      
+      // Update AI Prompt Guide with environment variables
+      const aiPromptPreview = root.querySelector('#hud-ai-prompt-preview');
+      if (aiPromptPreview && lastSnapshot) {
+        const sprites = lastSnapshot.allSpriteNames || [];
+        const vars = lastSnapshot.allVariables || [];
+        const broadcasts = lastSnapshot.allBroadcasts || [];
+
+        let envText = "";
+        if (sprites.length > 0 || vars.length > 0 || broadcasts.length > 0) {
+          envText = `\n\n[현재 프로젝트 환경 정보]\n`;
+          envText += `- 스프라이트 목록: ${sprites.length > 0 ? sprites.join(", ") : "없음"}\n`;
+          envText += `- 변수/리스트 목록: ${vars.length > 0 ? vars.join(", ") : "없음"}\n`;
+          envText += `- 방송 신호 목록: ${broadcasts.length > 0 ? broadcasts.join(", ") : "없음"}\n\n`;
+          envText += `주의: 위 목록에 명시된 스프라이트 이름, 변수 이름, 방송 신호만 사용해 코드를 생성하고 절대 임의의 이름을 새로 만들지 마십시오.`;
+        }
+        aiPromptPreview.value = AI_PROMPT_BASE + envText;
       }
     }
   });

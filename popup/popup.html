@@ -8,7 +8,7 @@
     
     body {
       font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
-      width: 280px;
+      width: 320px;
       padding: 16px;
       margin: 0;
       background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #d946ef 100%);
@@ -17,7 +17,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
     }
     
     .glass-card {
@@ -82,7 +82,7 @@
     p {
       font-size: 12px;
       color: #475569;
-      margin: 0 0 20px 0;
+      margin: 0 0 12px 0;
       line-height: 1.45;
       font-weight: 400;
     }
@@ -125,6 +125,72 @@
     <h3>Scratch HUD Coach</h3>
     <p>스크래치 화면 위에 코칭 보조 HUD 창을 열어 가이드를 작성하세요.</p>
     <button id="btn-toggle">🚀 HUD 토글</button>
+    
+    <hr style="width: 100%; border: none; border-top: 1px dashed rgba(0,0,0,0.1); margin: 16px 0;">
+
+    <div style="width: 100%; text-align: left;">
+      <h4 style="margin: 0 0 8px 0; font-size: 13px; color: #1e1b4b; display: flex; align-items: center; justify-content: space-between;">
+        🤖 AI 생성 블록 주입
+        <span id="inject-status-badge" style="font-size: 10px; background: #e2e8f0; color: #64748b; padding: 2px 6px; border-radius: 8px;">대기 없음</span>
+      </h4>
+      
+      <div style="font-size: 11px; margin-bottom: 8px; color: #475569; background: rgba(255, 255, 255, 0.4); padding: 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.5); display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; gap: 4px;">📍 <b style="min-width: 60px;">스프라이트:</b> <span id="detected-sprites" style="color: #4f46e5; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">대기 중...</span></div>
+        <div style="display: flex; gap: 4px;">📊 <b style="min-width: 60px;">변수:</b> <span id="detected-variables" style="color: #4f46e5; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">대기 중...</span></div>
+        <div style="display: flex; gap: 4px;">✉️ <b style="min-width: 60px;">방송 신호:</b> <span id="detected-broadcasts" style="color: #4f46e5; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">대기 중...</span></div>
+      </div>
+
+      <textarea id="custom-json-input" placeholder="여기에 AI가 생성한 JSON을 붙여넣으세요..." style="width: 100%; height: 80px; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: rgba(255,255,255,0.9); font-size: 11px; resize: vertical; box-sizing: border-box; outline: none; margin-bottom: 8px; font-family: monospace;"></textarea>
+      
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button id="btn-save-custom-json" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); flex: 2; padding: 8px 12px; font-size: 12px;">💾 저장 및 대기</button>
+        <button id="btn-clear-custom-json" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); flex: 1; padding: 8px 12px; font-size: 12px;">초기화</button>
+      </div>
+
+      <div class="accordion" id="accordion-guide">
+        <button id="btn-toggle-guide" style="background: rgba(255,255,255,0.5); color: #334155; border: 1px solid #cbd5e1; box-shadow: none; font-size: 12px; padding: 8px; text-align: left; justify-content: space-between;">
+          📋 AI 프롬프트 가이드 보기 <span id="guide-arrow">▼</span>
+        </button>
+        <div id="guide-content" style="display: none; margin-top: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px;">
+          <textarea id="ai-prompt-template" readonly style="width: 100%; height: 120px; font-size: 10px; font-family: monospace; background: transparent; border: none; outline: none; resize: none;">
+[시스템 지침]
+당신은 스크래치 3.0 코딩 AI 어시스턴트입니다.
+사용자가 제공하는 스프라이트 시나리오에 맞게 다음 JSON 스키마를 준수하여 코드 블록을 생성하세요.
+
+[JSON 스키마 구조 및 대표 블록 가이드]
+최상위 객체의 키는 스프라이트 이름이며, 값은 스크립트 시퀀스의 2차원 배열입니다.
+{
+  "스프라이트이름1": [
+    [
+      { "opcode": "event_whenflagclicked" },
+      { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+    ]
+  ]
+}
+
+- 시작 이벤트(깃발): { "opcode": "event_whenflagclicked" }
+- 키 클릭 이벤트: { "opcode": "event_whenkeypressed", "fields": { "KEY_OPTION": "space" } }
+- 신호 받았을 때: { "opcode": "event_whenbroadcastreceived", "fields": { "BROADCAST_OPTION": "신호명" } }
+- 신호 보내기: { "opcode": "event_broadcast", "inputs": { "BROADCAST_INPUT": [11, "신호명", "broadcast_id"] } }
+- ~초 기다리기: { "opcode": "control_wait", "inputs": { "DURATION": [4, 10, "1"] } }
+- 10번 반복하기: { "opcode": "control_repeat", "inputs": { "TIMES": [4, 10, "10"], "SUBSTACK": [ ... ] } }
+- 무한 반복하기: { "opcode": "control_forever", "inputs": { "SUBSTACK": [ ... ] } }
+- 만약 ~라면: { "opcode": "control_if", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ] } }
+- 만약 ~라면, 아니면: { "opcode": "control_if_else", "inputs": { "CONDITION": [ ... ], "SUBSTACK": [ ... ], "SUBSTACK2": [ ... ] } }
+- 변수 정하기: { "opcode": "data_setvariableto", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "0"] } }
+- 변수 바꾸기: { "opcode": "data_changevariableby", "fields": { "VARIABLE": "변수명" }, "inputs": { "VALUE": [10, "1"] } }
+- 닿았는가 감지: { "opcode": "sensing_touchingobject", "inputs": { "TOUCHINGOBJECTMENU": [1, [10, "_mouse_", "mouse_id"]] } }
+- x, y 좌표 이동: { "opcode": "motion_gotoxy", "inputs": { "X": [4, 10, "0"], "Y": [4, 10, "0"] } }
+- 10만큼 움직이기: { "opcode": "motion_movesteps", "inputs": { "STEPS": [4, 10, "10"] } }
+
+주의:
+1. Scratch 3.0 공식 opcode만 사용하세요.
+2. UUID는 부여하지 마세요.
+3. 순수한 JSON 텍스트만 출력하세요.</textarea>
+          <button id="btn-copy-guide" style="background: #3b82f6; padding: 6px; font-size: 11px; margin-top: 6px; box-shadow: none;">가이드 복사</button>
+        </div>
+      </div>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>

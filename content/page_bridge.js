@@ -43,6 +43,10 @@
       const rawBlocksByTarget = {};
       const rawCommentsByTarget = {};
 
+      const allSpriteNames = [];
+      const allVariables = new Set();
+      const allBroadcasts = new Set();
+
       let editingTargetName = null;
       if (vm.editingTarget) {
         if (vm.editingTarget.isStage) editingTargetName = "무대(배경)";
@@ -63,9 +67,22 @@
 
           const targetBlocks = {};
 
+          if (target.isOriginal) {
+            allSpriteNames.push(targetName);
+          }
+
           // count variables
           if (target.variables) {
              variablesCount += Object.keys(target.variables).length;
+             Object.values(target.variables).forEach(v => {
+               if (v.type === 'broadcast_msg') {
+                 allBroadcasts.add(v.name);
+               } else if (v.type === '') {
+                 allVariables.add(v.name);
+               } else if (v.type === 'list') {
+                 allVariables.add(v.name + " (리스트)");
+               }
+             });
           }
 
           // scrape blocks
@@ -115,7 +132,10 @@
             hasMotion,
             rawBlocksByTarget,
             rawCommentsByTarget,
-            editingTargetName
+            editingTargetName,
+            allSpriteNames,
+            allVariables: [...allVariables],
+            allBroadcasts: [...allBroadcasts]
           },
         },
         "*"
@@ -399,7 +419,94 @@
           "*"
         );
       }
+
+      // ── 다중 스프라이트 벌크 주입 ──────────────────────────
+      if (ev.data.type === "APPLY_CUSTOM_BULK_UPDATE") {
+        const result = applyBulkBlocksToVM(ev.data.payload.deparsedJson || ev.data.payload.customJson);
+        console.log("[HUD Coach] Bulk update result:", result);
+      }
     });
+  }
+
+  function applyBulkBlocksToVM(deparsedJson) {
+    const vm = findScratchVM();
+    if (!vm || !vm.runtime || !vm.runtime.targets) return { ok: false, error: 'VM not found' };
+
+    let successCount = 0;
+    let errorMsgs = [];
+    const targets = vm.runtime.targets;
+
+    for (const [targetName, flatBlocks] of Object.entries(deparsedJson)) {
+      if (!flatBlocks || Object.keys(flatBlocks).length === 0) continue;
+
+      const target = targets.find(t => {
+        if (t.isStage && targetName === "무대(배경)") return true;
+        return t.sprite && t.sprite.name === targetName;
+      });
+
+      if (!target) {
+        errorMsgs.push(`스프라이트 [${targetName}]를 찾을 수 없습니다.`);
+        continue;
+      }
+
+      try {
+        const isActive = (vm.editingTarget === target);
+
+        if (isActive) {
+          const SB = window.ScratchBlocks || window.Blockly;
+          if (SB && typeof SB.getMainWorkspace === 'function' && SB.Xml) {
+            const ws = SB.getMainWorkspace();
+            if (ws) {
+              try {
+                const xmlStr = flatBlocksToXml(flatBlocks);
+                const dom = SB.Xml.textToDom(xmlStr);
+                const newIds = SB.Xml.domToWorkspace(dom, ws);
+                if (newIds && newIds.length > 0) {
+                  const topBlock = ws.getBlockById(newIds[0]);
+                  if (topBlock) topBlock.select();
+                }
+                successCount++;
+                continue;
+              } catch (e) {
+                console.warn('[HUD Coach] Active sprite XML injection failed, falling back:', e);
+              }
+            }
+          }
+        }
+
+        // Direct mutation
+        const existingBlocks = target.blocks._blocks;
+        for (const [id, block] of Object.entries(flatBlocks)) {
+          existingBlocks[id] = block;
+          if (block.comment && target.comments) {
+            const commentId = id + '_comment';
+            target.comments[commentId] = {
+              id: commentId,
+              blockId: id,
+              x: (block.x || 0) + 200,
+              y: block.y || 0,
+              width: 250,
+              height: 120,
+              minimized: false,
+              text: block.comment
+            };
+          }
+        }
+        successCount++;
+      } catch(e) {
+        errorMsgs.push(`[${targetName}] 에러: ${e.message}`);
+      }
+    }
+
+    try {
+      if (typeof vm.emitWorkspaceUpdate === 'function') {
+        vm.emitWorkspaceUpdate();
+      }
+    } catch (e) {}
+
+    publishSnapshot();
+
+    return { ok: successCount > 0, successCount, errors: errorMsgs };
   }
 
   // Poll DOM until React is loaded and VM is found
