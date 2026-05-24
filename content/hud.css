@@ -1,6 +1,21 @@
 /* Sidebar HUD styles with Premium Glassmorphism */
 #hud-coach-root {
   box-sizing: border-box;
+  
+  /* Semantic Tokens for Spacing and Colors */
+  --hud-space-xs: 4px;
+  --hud-space-sm: 8px;
+  --hud-space-md: 12px;
+  --hud-space-lg: 16px;
+  --hud-space-xl: 24px;
+  
+  --hud-color-primary: #4f46e5;
+  --hud-color-primary-hover: #4338ca;
+  --hud-color-accent: #6366f1;
+  --hud-color-accent-light: rgba(99, 102, 241, 0.15);
+  
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);  /* timing for entering */
+  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);   /* timing for leaving */
 }
 
 #hud-coach-root *,
@@ -28,20 +43,88 @@
   overflow: hidden;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   
-  /* Slide-in Transition and Fade */
+  /* Slide-in Transition and Fade (Leaving timing: 300ms ease-in) */
   opacity: 0;
   visibility: hidden;
   transform: translateX(calc(100% + 32px));
   transition: 
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), 
-    opacity 0.4s ease, 
-    visibility 0.4s;
+    transform 300ms var(--ease-in-expo), 
+    opacity 300ms var(--ease-in-expo), 
+    visibility 300ms var(--ease-in-expo);
 }
 
 #hud-coach-root.open {
   opacity: 1;
   visibility: visible;
   transform: translateX(0);
+  /* Entering timing: 400ms ease-out */
+  transition: 
+    transform 400ms var(--ease-out-expo), 
+    opacity 400ms var(--ease-out-expo), 
+    visibility 400ms var(--ease-out-expo);
+}
+
+/* Accessibility Focus Indicator (Interaction Design Guideline) */
+#hud-coach-root *:focus {
+  outline: none;
+}
+
+#hud-coach-root *:focus-visible {
+  outline: 2px solid var(--hud-color-accent);
+  outline-offset: 2px;
+}
+
+/* HUD Resize Handle (Spatial Design Guideline) */
+#hud-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px; /* Touch target of 10px on edge */
+  height: 100%;
+  cursor: ew-resize;
+  z-index: 100002;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#hud-resize-handle::after {
+  content: '';
+  width: 2px;
+  height: 32px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: 
+    background-color 250ms var(--ease-out-expo), 
+    height 250ms var(--ease-out-expo);
+}
+
+#hud-resize-handle:hover::after {
+  background-color: var(--hud-color-accent);
+  height: 48px;
+}
+
+#hud-resize-handle:active::after {
+  background-color: var(--hud-color-primary);
+  height: 64px;
+}
+
+/* Reduced Motion Support (Motion Design Guideline) */
+@media (prefers-reduced-motion: reduce) {
+  #hud-coach-root {
+    transition: opacity 200ms ease-out, visibility 200ms !important;
+    transform: none !important;
+  }
+  #hud-coach-root.open {
+    transform: none !important;
+    transition: opacity 200ms ease-out, visibility 200ms !important;
+  }
+  #hud-resize-handle::after {
+    transition: none !important;
+  }
 }
 
 #hud-coach-header {
@@ -105,6 +188,15 @@
   transform: translateY(-1.5px);
   box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
   filter: brightness(1.05);
+}
+
+#hud-coach-toggle:focus {
+  outline: none;
+}
+
+#hud-coach-toggle:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
 }
 
 #hud-coach-toggle:active {

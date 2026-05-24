@@ -9,43 +9,54 @@
   function findScratchVM() {
     if (hackVm) return hackVm;
     
-    // 1. Harder search: inspect all elements to find the GUI wrapper component 
-    const allElems = document.querySelectorAll('*');
-    for (let i = 0; i < allElems.length; i++) {
-      const el = allElems[i];
-      const fKey = Object.keys(el).find(k => k.startsWith('__reactInternalInstance$') || k.startsWith('__reactFiber$'));
-      if (fKey) {
-        let currentFiber = el[fKey];
-        while (currentFiber) {
-          const props = currentFiber.pendingProps || currentFiber.memoizedProps;
-          if (props && props.vm) {
-            hackVm = props.vm;
-            return hackVm;
+    try {
+      const allElems = document.querySelectorAll('*');
+      for (let i = 0; i < allElems.length; i++) {
+        const el = allElems[i];
+        try {
+          const fKey = Object.keys(el).find(k => k.startsWith('__reactInternalInstance$') || k.startsWith('__reactFiber$'));
+          if (fKey) {
+            let currentFiber = el[fKey];
+            while (currentFiber) {
+              const props = currentFiber.pendingProps || currentFiber.memoizedProps;
+              if (props && props.vm) {
+                hackVm = props.vm;
+                return hackVm;
+              }
+              currentFiber = currentFiber.return;
+            }
           }
-          currentFiber = currentFiber.return;
+        } catch (innerErr) {
+          // ignore single element access errors (SecurityError on cross-origin elements)
         }
       }
+    } catch (e) {
+      console.warn('[HUD Coach] findScratchVM outer error:', e);
     }
     return null;
   }
 
   function refreshDynamicMenus(blockIds, ws) {
     if (!blockIds || blockIds.length === 0 || !ws) return;
-    blockIds.forEach(bid => {
-      const block = ws.getBlockById(bid);
-      if (block) {
-        const descendants = block.getDescendants(false);
-        descendants.forEach(child => {
-          if (child.type === 'sensing_of') {
-            const propField = child.getField('PROPERTY');
-            if (propField && typeof propField.setValue === 'function') {
-              const val = propField.getValue();
-              propField.setValue(val);
+    try {
+      blockIds.forEach(bid => {
+        const block = ws.getBlockById(bid);
+        if (block) {
+          const descendants = block.getDescendants(false);
+          descendants.forEach(child => {
+            if (child && child.type === 'sensing_of') {
+              const propField = child.getField('PROPERTY');
+              if (propField && typeof propField.setValue === 'function') {
+                const val = propField.getValue();
+                propField.setValue(val);
+              }
             }
-          }
-        });
-      }
-    });
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('[HUD Coach] refreshDynamicMenus error:', e);
+    }
   }
 
   let cachedWorkspace = null;
@@ -67,17 +78,21 @@
     }
 
     // Check globals
-    if (window.ScratchBlocks && typeof window.ScratchBlocks.getMainWorkspace === 'function') {
-      const ws = window.ScratchBlocks.getMainWorkspace();
-      if (ws) {
-        return { workspace: ws, ScratchBlocks: window.ScratchBlocks };
+    try {
+      if (window.ScratchBlocks && typeof window.ScratchBlocks.getMainWorkspace === 'function') {
+        const ws = window.ScratchBlocks.getMainWorkspace();
+        if (ws) {
+          return { workspace: ws, ScratchBlocks: window.ScratchBlocks };
+        }
       }
-    }
-    if (window.Blockly && typeof window.Blockly.getMainWorkspace === 'function') {
-      const ws = window.Blockly.getMainWorkspace();
-      if (ws) {
-        return { workspace: ws, ScratchBlocks: window.Blockly };
+      if (window.Blockly && typeof window.Blockly.getMainWorkspace === 'function') {
+        const ws = window.Blockly.getMainWorkspace();
+        if (ws) {
+          return { workspace: ws, ScratchBlocks: window.Blockly };
+        }
       }
+    } catch (e) {
+      console.warn('[HUD Coach] Globals blockly check error:', e);
     }
 
     // React DOM tree traversal
@@ -85,40 +100,44 @@
       const allElems = document.querySelectorAll('*');
       for (let i = 0; i < allElems.length; i++) {
         const el = allElems[i];
-        const fKey = Object.keys(el).find(k => k.startsWith('__reactInternalInstance$') || k.startsWith('__reactFiber$'));
-        if (fKey) {
-          let currentFiber = el[fKey];
-          while (currentFiber) {
-            const stateNode = currentFiber.stateNode;
-            if (stateNode) {
-              if (stateNode.workspace && stateNode.ScratchBlocks) {
-                cachedWorkspace = stateNode.workspace;
-                cachedScratchBlocks = stateNode.ScratchBlocks;
+        try {
+          const fKey = Object.keys(el).find(k => k.startsWith('__reactInternalInstance$') || k.startsWith('__reactFiber$'));
+          if (fKey) {
+            let currentFiber = el[fKey];
+            while (currentFiber) {
+              const stateNode = currentFiber.stateNode;
+              if (stateNode) {
+                if (stateNode.workspace && stateNode.ScratchBlocks) {
+                  cachedWorkspace = stateNode.workspace;
+                  cachedScratchBlocks = stateNode.ScratchBlocks;
+                  return { workspace: cachedWorkspace, ScratchBlocks: cachedScratchBlocks };
+                }
+                if (stateNode.workspace) {
+                  cachedWorkspace = stateNode.workspace;
+                }
+                if (stateNode.ScratchBlocks) {
+                  cachedScratchBlocks = stateNode.ScratchBlocks;
+                }
+              }
+
+              const props = currentFiber.pendingProps || currentFiber.memoizedProps;
+              if (props) {
+                if (props.workspace) {
+                  cachedWorkspace = props.workspace;
+                }
+                if (props.ScratchBlocks) {
+                  cachedScratchBlocks = props.ScratchBlocks;
+                }
+              }
+
+              if (cachedWorkspace && cachedScratchBlocks) {
                 return { workspace: cachedWorkspace, ScratchBlocks: cachedScratchBlocks };
               }
-              if (stateNode.workspace) {
-                cachedWorkspace = stateNode.workspace;
-              }
-              if (stateNode.ScratchBlocks) {
-                cachedScratchBlocks = stateNode.ScratchBlocks;
-              }
+              currentFiber = currentFiber.return;
             }
-
-            const props = currentFiber.pendingProps || currentFiber.memoizedProps;
-            if (props) {
-              if (props.workspace) {
-                cachedWorkspace = props.workspace;
-              }
-              if (props.ScratchBlocks) {
-                cachedScratchBlocks = props.ScratchBlocks;
-              }
-            }
-
-            if (cachedWorkspace && cachedScratchBlocks) {
-              return { workspace: cachedWorkspace, ScratchBlocks: cachedScratchBlocks };
-            }
-            currentFiber = currentFiber.return;
           }
+        } catch (innerErr) {
+          // ignore single element access errors
         }
       }
     } catch (e) {
@@ -205,6 +224,7 @@
 
       if (vm.runtime && vm.runtime.targets) {
         vm.runtime.targets.forEach(target => {
+          if (!target) return;
           let targetName = "Unknown";
           if (target.isStage) {
             targetName = "무대(배경)";
@@ -224,11 +244,11 @@
           if (target.variables) {
              variablesCount += Object.keys(target.variables).length;
              Object.values(target.variables).forEach(v => {
-               if (v.type === 'broadcast_msg') {
+               if (v && v.type === 'broadcast_msg') {
                  allBroadcasts.add(v.name);
-               } else if (v.type === '') {
+               } else if (v && v.type === '') {
                  allVariables.add(v.name);
-               } else if (v.type === 'list') {
+               } else if (v && v.type === 'list') {
                  allVariables.add(v.name + " (리스트)");
                }
              });
@@ -443,6 +463,72 @@
     return `<xml xmlns="https://developers.google.com/blockly/xml">${parts.join('')}</xml>`;
   }
 
+  /**
+   * 인지적 부하를 줄이기 위해 뷰포트를 신규 주입된 블록으로 부드럽게 전환(Easing) 이동시킵니다.
+   */
+  function focusBlockSmoothly(block, ws) {
+    if (!block || !ws) return;
+
+    // 1. 즉각적인 피드백을 위해 블록 하이라이트(선택) 표시
+    if (typeof block.select === 'function') {
+      block.select();
+    }
+
+    const metrics = ws.getMetrics();
+    if (!metrics) return;
+
+    const xy = block.getRelativeToSurfaceXY();
+    const heightWidth = block.getHeightWidth();
+    const scale = ws.scale || 1;
+
+    // 블록의 중심점을 기준으로 타겟 스크롤 좌표 계산
+    const centerX = xy.x + heightWidth.width / 2;
+    const centerY = xy.y + heightWidth.height / 2;
+
+    const targetX = (metrics.viewWidth / 2) - (centerX * scale);
+    const targetY = (metrics.viewHeight / 2) - (centerY * scale);
+
+    // 모션 감소 설정을 선호하는지 확인
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      // 인스턴트 점프 (모션 제거)
+      ws.translate(targetX, targetY);
+      if (ws.scrollbar && typeof ws.scrollbar.resize === 'function') {
+        ws.scrollbar.resize();
+      }
+      return;
+    }
+
+    // 2. 애니메이션 구현 (400ms duration, ease-out-expo 곡선 적용)
+    const duration = 400; 
+    const startX = ws.scrollX;
+    const startY = ws.scrollY;
+    const startTime = performance.now();
+
+    function animate(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // ease-out-expo 곡선: 1 - 2^(-10 * progress)
+      const easedProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+
+      const currentX = startX + (targetX - startX) * easedProgress;
+      const currentY = startY + (targetY - startY) * easedProgress;
+
+      ws.translate(currentX, currentY);
+
+      if (ws.scrollbar && typeof ws.scrollbar.resize === 'function') {
+        ws.scrollbar.resize();
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
   // ─────────────────────────────────────────────────────────────────
   // VM 주입: 2-전략 구조
   // ─────────────────────────────────────────────────────────────────
@@ -505,9 +591,7 @@
           if (newBlockIds && newBlockIds.length > 0) {
             refreshDynamicMenus(newBlockIds, ws);
             const topBlock = ws.getBlockById(newBlockIds[0]);
-            if (topBlock && typeof topBlock.select === 'function') {
-              topBlock.select(); // 블록 선택 효과 및 자동 스크롤
-            }
+            focusBlockSmoothly(topBlock, ws);
           }
 
           const nonShadowCount = Object.values(newBlocks).filter(b => b && !b.shadow).length;
@@ -786,7 +870,7 @@
               if (newIds && newIds.length > 0) {
                 refreshDynamicMenus(newIds, ws);
                 const topBlock = ws.getBlockById(newIds[0]);
-                if (topBlock && typeof topBlock.select === 'function') topBlock.select();
+                focusBlockSmoothly(topBlock, ws);
               }
               successCount++;
               continue;

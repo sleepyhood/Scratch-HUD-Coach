@@ -29,13 +29,22 @@ class ScratchParser {
   traverseScript(startBlockId) {
     const sequence = [];
     let currentId = startBlockId;
+    const visited = new Set();
 
     while (currentId) {
+      if (visited.has(currentId)) {
+        console.warn(`[HUD Coach Parser] Circular reference detected in script chain at block: ${currentId}`);
+        break; // Circular reference protection
+      }
+      visited.add(currentId);
+
       const block = this.blocks[currentId];
       if (!block) break;
 
       const normalizedBlock = this.normalizeBlock(block);
-      sequence.push(normalizedBlock);
+      if (normalizedBlock) {
+        sequence.push(normalizedBlock);
+      }
 
       currentId = block.next;
     }
@@ -44,7 +53,18 @@ class ScratchParser {
   }
 
   // 3. 단일 블록의 입력(inputs) 및 필드(fields) 정규화
-  normalizeBlock(block) {
+  normalizeBlock(block, visited = new Set()) {
+    if (!block || !block.opcode) return null;
+
+    // 순환 참조 방지
+    const blockRef = block.id || block;
+    if (visited.has(blockRef)) {
+      console.warn(`[HUD Coach Parser] Circular input block reference detected: ${blockRef}`);
+      return { opcode: block.opcode, error: "Circular reference" };
+    }
+    const nextVisited = new Set(visited);
+    nextVisited.add(blockRef);
+
     const norm = {
       opcode: block.opcode
     };
@@ -78,7 +98,10 @@ class ScratchParser {
             norm.inputs[key] = this.traverseScript(payloadId);
           } else {
             // 단순 값 반환 블록이나 단일 연산자 블록인 경우
-            norm.inputs[key] = this.normalizeBlock(this.blocks[payloadId]);
+            const nested = this.normalizeBlock(this.blocks[payloadId], nextVisited);
+            if (nested) {
+              norm.inputs[key] = nested;
+            }
           }
         } else {
            // 값 자체가 배열이거나 원시값일 경우 (안전망)
@@ -130,6 +153,7 @@ class ScratchParser {
    */
   static _wrapShadow(value, flatBlocks, parentId, inputKey, parentOpcode) {
     const id = ScratchParser.generateId();
+    const safeVal = (value !== null && value !== undefined) ? String(value) : '';
     
     // 색상 코드 감지 규칙
     const isColorPattern = (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value));
@@ -144,7 +168,7 @@ class ScratchParser {
     
     if (isColorPattern || isColorInput) {
       opcode = 'colour_picker';
-      fields['COLOUR'] = { name: 'COLOUR', value: String(value) };
+      fields['COLOUR'] = { name: 'COLOUR', value: safeVal };
     } else {
       const isNumber = (
         typeof value === 'number' ||
@@ -152,10 +176,10 @@ class ScratchParser {
       );
       if (isNumber) {
         opcode = 'math_number';
-        fields['NUM'] = { name: 'NUM', value: String(value) };
+        fields['NUM'] = { name: 'NUM', value: safeVal };
       } else {
         opcode = 'text';
-        fields['TEXT'] = { name: 'TEXT', value: String(value) };
+        fields['TEXT'] = { name: 'TEXT', value: safeVal };
       }
     }
     
@@ -294,7 +318,16 @@ class ScratchParser {
     const baseY = options.y !== undefined ? options.y : 80;
     const yGap  = options.yGap !== undefined ? options.yGap : 220;
 
-    scripts.forEach((script, scriptIndex) => {
+    let scriptsArray = scripts;
+    if (!Array.isArray(scriptsArray)) {
+      if (scriptsArray && typeof scriptsArray === 'object') {
+        scriptsArray = [scriptsArray];
+      } else {
+        return {};
+      }
+    }
+
+    scriptsArray.forEach((script, scriptIndex) => {
       // script는 배열일 수도, 단일 객체(next 필드 포함)일 수도 있음
       let sequence = Array.isArray(script) ? script : [script];
 
@@ -611,9 +644,16 @@ ScratchParser.validateStrict = function (parsedJson, envData) {
         if (opcode === "event_broadcast" || opcode === "event_broadcastandwait") {
           const inputVal = block.inputs && block.inputs.BROADCAST_INPUT;
           let bStr = "";
-          if (inputVal && typeof inputVal === 'object' && inputVal.opcode === "event_broadcast_menu" && inputVal.fields) {
-            const bOption = inputVal.fields.BROADCAST_OPTION;
-            bStr = (typeof bOption === 'object') ? (bOption.value || '') : String(bOption);
+          if (typeof inputVal === 'string') {
+            bStr = inputVal;
+          } else if (inputVal && typeof inputVal === 'object') {
+            if (inputVal.opcode === "event_broadcast_menu" && inputVal.fields) {
+              const bOption = inputVal.fields.BROADCAST_OPTION;
+              bStr = (typeof bOption === 'object') ? (bOption.value || '') : String(bOption);
+            } else if (inputVal.fields && inputVal.fields.BROADCAST_OPTION) {
+              const bOption = inputVal.fields.BROADCAST_OPTION;
+              bStr = (typeof bOption === 'object') ? (bOption.value || '') : String(bOption);
+            }
           }
           if (bStr && !broadcasts.includes(bStr)) {
             warnings.push(`프로젝트에 존재하지 않는 방송 신호 [${bStr}]을(를) 전송하고 있습니다. (스프라이트: [${targetName}])`);
@@ -624,9 +664,16 @@ ScratchParser.validateStrict = function (parsedJson, envData) {
         if (opcode === "sensing_of") {
           let objStr = "";
           const inputVal = block.inputs && block.inputs.OBJECT;
-          if (inputVal && typeof inputVal === 'object' && inputVal.opcode === "sensing_of_object_menu" && inputVal.fields) {
-            const bObj = inputVal.fields.OBJECT;
-            objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+          if (typeof inputVal === 'string') {
+            objStr = inputVal;
+          } else if (inputVal && typeof inputVal === 'object') {
+            if (inputVal.opcode === "sensing_of_object_menu" && inputVal.fields) {
+              const bObj = inputVal.fields.OBJECT;
+              objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+            } else if (inputVal.fields && inputVal.fields.OBJECT) {
+              const bObj = inputVal.fields.OBJECT;
+              objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+            }
           } else if (block.fields && block.fields.OBJECT) {
             const bObj = block.fields.OBJECT;
             objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
@@ -643,9 +690,16 @@ ScratchParser.validateStrict = function (parsedJson, envData) {
         if (opcode === "sensing_touchingobject") {
           let objStr = "";
           const inputVal = block.inputs && block.inputs.TOUCHINGOBJECTMENU;
-          if (inputVal && typeof inputVal === 'object' && inputVal.opcode === "sensing_touchingobjectmenu" && inputVal.fields) {
-            const bObj = inputVal.fields.TOUCHINGOBJECTMENU;
-            objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+          if (typeof inputVal === 'string') {
+            objStr = inputVal;
+          } else if (inputVal && typeof inputVal === 'object') {
+            if (inputVal.opcode === "sensing_touchingobjectmenu" && inputVal.fields) {
+              const bObj = inputVal.fields.TOUCHINGOBJECTMENU;
+              objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+            } else if (inputVal.fields && inputVal.fields.TOUCHINGOBJECTMENU) {
+              const bObj = inputVal.fields.TOUCHINGOBJECTMENU;
+              objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+            }
           }
           if (objStr) {
             const specialTargets = ["_mouse_", "_edge_", "_any_", "Stage", "무대(배경)"];

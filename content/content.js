@@ -19,6 +19,59 @@
   root.innerHTML = window.HUD_HTML_TEMPLATE || '';
   document.body.appendChild(root);
 
+  // 2.5) Resizing logic (Spatial Design Guideline)
+  const resizeHandle = document.createElement("div");
+  resizeHandle.id = "hud-resize-handle";
+  root.appendChild(resizeHandle);
+
+  let isResizing = false;
+  let startWidth = 360;
+
+  // Load saved width from Chrome storage
+  chrome.storage.sync.get(['hud_panel_width'], (data) => {
+    if (data.hud_panel_width) {
+      const savedWidth = Math.max(280, Math.min(800, data.hud_panel_width));
+      root.style.width = `${savedWidth}px`;
+    }
+  });
+
+  resizeHandle.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    isResizing = true;
+    startWidth = root.offsetWidth;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+    // Temporarily disable panel opening/closing transitions during drag
+    root.style.transition = "none";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+    const rightMargin = 16;
+    const newWidth = window.innerWidth - e.clientX - rightMargin;
+    
+    // Constraints: minimum 280px, maximum 800px or 70% of viewport width
+    const minWidth = 280;
+    const maxWidth = Math.min(800, window.innerWidth * 0.7);
+    const clampedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+    
+    root.style.width = `${clampedWidth}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      // Re-enable transition by removing inline override
+      root.style.transition = "";
+      
+      const finalWidth = root.offsetWidth;
+      chrome.storage.sync.set({ hud_panel_width: finalWidth });
+    }
+  });
+
+
   // Toggle logic
   const openHUD = () => {
     root.classList.add("open");
