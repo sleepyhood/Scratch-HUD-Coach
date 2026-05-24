@@ -94,7 +94,8 @@
   padding: 10px 18px;
   font-weight: 600;
   font-size: 13px;
-  cursor: pointer;
+  cursor: move;
+  user-select: none;
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
   transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
   font-family: inherit;
@@ -518,3 +519,23 @@ select.hud-select:focus {
 .scratch-mini-block.data { background-color: #ff8c1a; }
 .scratch-mini-block.myBlocks { background-color: #ff6680; }
 .scratch-mini-block.pen { background-color: #0fbd8c; }
+
+@keyframes hudFlashSuccess {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); border-color: #10b981; }
+  50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); border-color: #10b981; }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes hudShakeError {
+  0%, 100% { transform: translateX(0); border-color: #ef4444; }
+  20%, 60% { transform: translateX(-4px); border-color: #ef4444; }
+  40%, 80% { transform: translateX(4px); border-color: #ef4444; }
+}
+
+.hud-inject-success {
+  animation: hudFlashSuccess 1s ease-out;
+}
+
+.hud-inject-error {
+  animation: hudShakeError 0.5s ease-in-out;
+}

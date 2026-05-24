@@ -21,6 +21,8 @@
             "js": [
                 "content/parser.js",
                 "content/injector.js",
+                "content/hud_template.js",
+                "content/ui_utils.js",
                 "content/content.js"
             ],
             "css": [

@@ -27,6 +27,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg && msg.type === "COMMAND") {
     // keyboard shortcuts wired via content script
-    chrome.tabs.sendMessage(sender.tab.id, { type: msg.payload }, () => {});
+    chrome.tabs.sendMessage(sender.tab.id, { type: msg.payload }, () => {
+      if (chrome.runtime.lastError) { /* ignore */ }
+    });
+    sendResponse({ ok: true });
+    return;
   }
 });

@@ -29,9 +29,154 @@
     return null;
   }
 
+  function refreshDynamicMenus(blockIds, ws) {
+    if (!blockIds || blockIds.length === 0 || !ws) return;
+    blockIds.forEach(bid => {
+      const block = ws.getBlockById(bid);
+      if (block) {
+        const descendants = block.getDescendants(false);
+        descendants.forEach(child => {
+          if (child.type === 'sensing_of') {
+            const propField = child.getField('PROPERTY');
+            if (propField && typeof propField.setValue === 'function') {
+              const val = propField.getValue();
+              propField.setValue(val);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  let cachedWorkspace = null;
+  let cachedScratchBlocks = null;
+
+  function findBlocklyAndWorkspace() {
+    // Check if cache is still valid and attached to the DOM
+    if (cachedWorkspace && cachedScratchBlocks) {
+      try {
+        const svg = typeof cachedWorkspace.getParentSvg === 'function' ? cachedWorkspace.getParentSvg() : null;
+        if (svg && document.body.contains(svg)) {
+          return { workspace: cachedWorkspace, ScratchBlocks: cachedScratchBlocks };
+        }
+      } catch (e) {
+        // Cache is invalid or errored, clear it
+        cachedWorkspace = null;
+        cachedScratchBlocks = null;
+      }
+    }
+
+    // Check globals
+    if (window.ScratchBlocks && typeof window.ScratchBlocks.getMainWorkspace === 'function') {
+      const ws = window.ScratchBlocks.getMainWorkspace();
+      if (ws) {
+        return { workspace: ws, ScratchBlocks: window.ScratchBlocks };
+      }
+    }
+    if (window.Blockly && typeof window.Blockly.getMainWorkspace === 'function') {
+      const ws = window.Blockly.getMainWorkspace();
+      if (ws) {
+        return { workspace: ws, ScratchBlocks: window.Blockly };
+      }
+    }
+
+    // React DOM tree traversal
+    try {
+      const allElems = document.querySelectorAll('*');
+      for (let i = 0; i < allElems.length; i++) {
+        const el = allElems[i];
+        const fKey = Object.keys(el).find(k => k.startsWith('__reactInternalInstance$') || k.startsWith('__reactFiber$'));
+        if (fKey) {
+          let currentFiber = el[fKey];
+          while (currentFiber) {
+            const stateNode = currentFiber.stateNode;
+            if (stateNode) {
+              if (stateNode.workspace && stateNode.ScratchBlocks) {
+                cachedWorkspace = stateNode.workspace;
+                cachedScratchBlocks = stateNode.ScratchBlocks;
+                return { workspace: cachedWorkspace, ScratchBlocks: cachedScratchBlocks };
+              }
+              if (stateNode.workspace) {
+                cachedWorkspace = stateNode.workspace;
+              }
+              if (stateNode.ScratchBlocks) {
+                cachedScratchBlocks = stateNode.ScratchBlocks;
+              }
+            }
+
+            const props = currentFiber.pendingProps || currentFiber.memoizedProps;
+            if (props) {
+              if (props.workspace) {
+                cachedWorkspace = props.workspace;
+              }
+              if (props.ScratchBlocks) {
+                cachedScratchBlocks = props.ScratchBlocks;
+              }
+            }
+
+            if (cachedWorkspace && cachedScratchBlocks) {
+              return { workspace: cachedWorkspace, ScratchBlocks: cachedScratchBlocks };
+            }
+            currentFiber = currentFiber.return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[HUD Coach] React DOM tree workspace search error:', e);
+    }
+
+    if (cachedWorkspace) {
+      return {
+        workspace: cachedWorkspace,
+        ScratchBlocks: cachedScratchBlocks || window.ScratchBlocks || window.Blockly || null
+      };
+    }
+
+    return { workspace: null, ScratchBlocks: null };
+  }
+
+  let lastQuickFingerprint = "";
+  function checkQuickChanged(vm) {
+    if (!vm || !vm.runtime) return false;
+    let totalBlocks = 0;
+    let totalComments = 0;
+    const targetCount = vm.runtime.targets ? vm.runtime.targets.length : 0;
+    
+    let editingTargetName = "none";
+    if (vm.editingTarget) {
+      if (vm.editingTarget.isStage) editingTargetName = "stage";
+      else if (vm.editingTarget.sprite && vm.editingTarget.sprite.name) editingTargetName = vm.editingTarget.sprite.name;
+    }
+
+    if (vm.runtime.targets) {
+      vm.runtime.targets.forEach(t => {
+        if (t.blocks && t.blocks._blocks) {
+          totalBlocks += Object.keys(t.blocks._blocks).length;
+        }
+        if (t.comments) {
+          totalComments += Object.keys(t.comments).length;
+        }
+      });
+    }
+
+    const currentFingerprint = `${targetCount}_${totalBlocks}_${totalComments}_${editingTargetName}`;
+    if (currentFingerprint === lastQuickFingerprint) {
+      return false;
+    }
+    lastQuickFingerprint = currentFingerprint;
+    return true;
+  }
+
   function publishSnapshot(force = false) {
     const vm = findScratchVM();
     if (!vm) return;
+
+    tryBindChangeListener();
+
+    if (force !== true) {
+      const isChanged = checkQuickChanged(vm);
+      if (!isChanged) return;
+    }
 
     try {
       let opcodes = new Set();
@@ -45,6 +190,7 @@
       const rawCommentsByTarget = {};
       const cleanCommentsByTarget = {};
       let ghostCommentsCount = 0;
+      let ghostCommentsTargets = new Set();
 
       const allSpriteNames = [];
       const allVariables = new Set();
@@ -123,6 +269,7 @@
               .filter(c => {
                 if (c && c.blockId && !targetBlocks[c.blockId]) {
                   ghostCommentsCount++;
+                  ghostCommentsTargets.add(targetName);
                   return false;
                 }
                 return true;
@@ -144,7 +291,8 @@
         vars: [...allVariables],
         broadcasts: [...allBroadcasts],
         editingTarget: editingTargetName,
-        ghostCommentsCount
+        ghostCommentsCount,
+        ghostCommentsTargets: [...ghostCommentsTargets]
       };
       
       const snapshotJson = JSON.stringify(snapshotFingerprintObj);
@@ -169,6 +317,7 @@
             rawCommentsByTarget,
             cleanCommentsByTarget,
             ghostCommentsCount,
+            ghostCommentsTargets: [...ghostCommentsTargets],
             editingTargetName,
             allSpriteNames,
             allVariables: [...allVariables],
@@ -329,33 +478,43 @@
       }
 
       // ── Strategy 1: XML → domToWorkspace ────────────────────────
-      const SB = window.ScratchBlocks || window.Blockly;
-      if (SB && typeof SB.getMainWorkspace === 'function' && SB.Xml) {
-        const ws = SB.getMainWorkspace();
-        if (ws) {
-          try {
-            const xmlStr = flatBlocksToXml(newBlocks);
-            console.log('[HUD Coach] XML to inject:', xmlStr); // 디버그용
+      const { workspace: ws, ScratchBlocks: SB } = findBlocklyAndWorkspace();
+      if (ws) {
+        try {
+          const xmlStr = flatBlocksToXml(newBlocks);
+          console.log('[HUD Coach] XML to inject:', xmlStr); // 디버그용
 
-            const dom = SB.Xml.textToDom(xmlStr);
-
-            // domToWorkspace: 기존 블록 유지하면서 XML의 블록들을 추가
-            const newBlockIds = SB.Xml.domToWorkspace(dom, ws);
-            
-            // 자동 스크롤 포커스
-            if (newBlockIds && newBlockIds.length > 0) {
-              const topBlock = ws.getBlockById(newBlockIds[0]);
-              if (topBlock) {
-                topBlock.select(); // 블록 선택 효과 및 자동 스크롤
-              }
-            }
-
-            const nonShadowCount = Object.values(newBlocks).filter(b => b && !b.shadow).length;
-            setTimeout(() => publishSnapshot(true), 300);
-            return { ok: true, count: nonShadowCount, method: 'xml+domToWorkspace', fallback: payload.fallback, targetSprite: payload.targetSprite, currentSprite: payload.currentSprite };
-          } catch (xmlErr) {
-            console.warn('[HUD Coach] Strategy 1 (XML) 실패, Strategy 2로 폴백:', xmlErr);
+          let dom;
+          if (SB && SB.Xml && typeof SB.Xml.textToDom === 'function') {
+            dom = SB.Xml.textToDom(xmlStr);
+          } else {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlStr, "text/xml");
+            dom = doc.documentElement;
           }
+
+          // domToWorkspace: 기존 블록 유지하면서 XML의 블록들을 추가
+          let newBlockIds = [];
+          if (SB && SB.Xml && typeof SB.Xml.domToWorkspace === 'function') {
+            newBlockIds = SB.Xml.domToWorkspace(dom, ws);
+          } else {
+            throw new Error('domToWorkspace 함수를 찾을 수 없습니다.');
+          }
+          
+          // 자동 스크롤 포커스 및 동적 메뉴 로컬라이즈 리프레시
+          if (newBlockIds && newBlockIds.length > 0) {
+            refreshDynamicMenus(newBlockIds, ws);
+            const topBlock = ws.getBlockById(newBlockIds[0]);
+            if (topBlock && typeof topBlock.select === 'function') {
+              topBlock.select(); // 블록 선택 효과 및 자동 스크롤
+            }
+          }
+
+          const nonShadowCount = Object.values(newBlocks).filter(b => b && !b.shadow).length;
+          setTimeout(() => publishSnapshot(true), 300);
+          return { ok: true, count: nonShadowCount, method: 'xml+domToWorkspace', fallback: payload.fallback, targetSprite: payload.targetSprite, currentSprite: payload.currentSprite };
+        } catch (xmlErr) {
+          console.warn('[HUD Coach] Strategy 1 (XML) 실패, Strategy 2로 폴백:', xmlErr);
         }
       }
 
@@ -390,9 +549,9 @@
 
       // 2) Blockly 강제 렌더 (있으면 시도)
       try {
-        if (SB && typeof SB.getMainWorkspace === 'function') {
-          const ws = SB.getMainWorkspace();
-          if (ws && typeof ws.render === 'function') ws.render();
+        const { workspace: fallbackWs } = findBlocklyAndWorkspace();
+        if (fallbackWs && typeof fallbackWs.render === 'function') {
+          fallbackWs.render();
         }
       } catch (e) { /* ignore */ }
 
@@ -405,6 +564,24 @@
     }
   }
 
+  let boundChangeListener = false;
+  function tryBindChangeListener() {
+    if (boundChangeListener) return;
+    try {
+      const { workspace: ws } = findBlocklyAndWorkspace();
+      if (ws && typeof ws.addChangeListener === 'function') {
+        ws.addChangeListener(() => {
+          clearTimeout(window.__hud_snap_to);
+          window.__hud_snap_to = setTimeout(() => publishSnapshot(), 300);
+        });
+        boundChangeListener = true;
+        console.log('[HUD Coach] Blockly workspace change listener bound successfully.');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   function start() {
     const vm = findScratchVM();
     if (!vm) return;
@@ -412,29 +589,8 @@
     // Send initial snapshot
     publishSnapshot();
 
-    // Attach to the Blockly workspace as a trigger to run publishSnapshot
-    // This provides the fastest feeling of UI responsiveness when dropping blocks
-    try {
-      if (window.ScratchBlocks && typeof window.ScratchBlocks.getMainWorkspace === 'function') {
-         const ws = window.ScratchBlocks.getMainWorkspace();
-         if (ws) {
-            ws.addChangeListener(() => {
-               clearTimeout(window.__hud_snap_to);
-               window.__hud_snap_to = setTimeout(() => publishSnapshot(), 300);
-            });
-         }
-      } else if (window.Blockly && typeof window.Blockly.getMainWorkspace === 'function') {
-         const ws = window.Blockly.getMainWorkspace();
-         if (ws) {
-            ws.addChangeListener(() => {
-               clearTimeout(window.__hud_snap_to);
-               window.__hud_snap_to = setTimeout(() => publishSnapshot(), 300);
-            });
-         }
-      }
-    } catch (e) {
-      // ignore blockly bind error
-    }
+    // Try to bind change listener to the workspace
+    tryBindChangeListener();
 
     // Fallback polling: just in case blockly listener misses something (e.g. variable renames)
     setInterval(() => publishSnapshot(), 1500);
@@ -467,6 +623,15 @@
             message: result.ok ? `✅ 총 ${result.successCount}개의 스프라이트에 AI 코드가 주입되었습니다.` : undefined,
             error: result.ok ? undefined : result.errors.join(', ')
           } },
+          "*"
+        );
+      }
+
+      // ── 가이드 주석 전용 주입 ──────────────────────────────
+      if (ev.data.type === "APPLY_COMMENTS_ONLY") {
+        const result = applyCommentsOnlyToVM(ev.data.payload.commentsJson, ev.data.payload.overview, ev.data.payload.mission);
+        window.postMessage(
+          { source: "scratch-hud", type: "APPLY_RESULT", payload: result },
           "*"
         );
       }
@@ -526,12 +691,9 @@
 
       // 블록과 주석 둘 다 완전히 지우는 경우에는 잔상 제거를 위해 Blockly 전체 클리어 실행
       if (clearBlocks && clearComments) {
-        const SB = window.ScratchBlocks || window.Blockly;
-        if (SB && typeof SB.getMainWorkspace === 'function') {
-          const ws = SB.getMainWorkspace();
-          if (ws) {
-            ws.clear();
-          }
+        const { workspace: ws } = findBlocklyAndWorkspace();
+        if (ws && typeof ws.clear === 'function') {
+          ws.clear();
         }
       }
     } catch (e) {
@@ -601,23 +763,35 @@
         const isActive = (vm.editingTarget === target);
 
         if (isActive) {
-          const SB = window.ScratchBlocks || window.Blockly;
-          if (SB && typeof SB.getMainWorkspace === 'function' && SB.Xml) {
-            const ws = SB.getMainWorkspace();
-            if (ws) {
-              try {
-                const xmlStr = flatBlocksToXml(flatBlocks);
-                const dom = SB.Xml.textToDom(xmlStr);
-                const newIds = SB.Xml.domToWorkspace(dom, ws);
-                if (newIds && newIds.length > 0) {
-                  const topBlock = ws.getBlockById(newIds[0]);
-                  if (topBlock) topBlock.select();
-                }
-                successCount++;
-                continue;
-              } catch (e) {
-                console.warn('[HUD Coach] Active sprite XML injection failed, falling back:', e);
+          const { workspace: ws, ScratchBlocks: SB } = findBlocklyAndWorkspace();
+          if (ws) {
+            try {
+              const xmlStr = flatBlocksToXml(flatBlocks);
+              let dom;
+              if (SB && SB.Xml && typeof SB.Xml.textToDom === 'function') {
+                dom = SB.Xml.textToDom(xmlStr);
+              } else {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xmlStr, "text/xml");
+                dom = doc.documentElement;
               }
+
+              let newIds = [];
+              if (SB && SB.Xml && typeof SB.Xml.domToWorkspace === 'function') {
+                newIds = SB.Xml.domToWorkspace(dom, ws);
+              } else {
+                throw new Error('domToWorkspace 함수를 찾을 수 없습니다.');
+              }
+
+              if (newIds && newIds.length > 0) {
+                refreshDynamicMenus(newIds, ws);
+                const topBlock = ws.getBlockById(newIds[0]);
+                if (topBlock && typeof topBlock.select === 'function') topBlock.select();
+              }
+              successCount++;
+              continue;
+            } catch (e) {
+              console.warn('[HUD Coach] Active sprite XML injection failed, falling back:', e);
             }
           }
         }
@@ -655,6 +829,193 @@
     publishSnapshot(true);
 
     return { ok: successCount > 0, successCount, errors: errorMsgs };
+  }
+
+  function applyCommentsOnlyToVM(commentsJson, overview, mission) {
+    const vm = findScratchVM();
+    if (!vm || !vm.runtime || !vm.runtime.targets) return { ok: false, error: 'VM not found' };
+
+    let successCount = 0;
+    let errorMsgs = [];
+    const targets = vm.runtime.targets;
+    
+    const targetsWithExistingGuide = [];
+    let injectStage = false;
+    let stageTarget = null;
+
+    if (overview && mission) {
+       stageTarget = targets.find(t => t.isStage);
+       if (stageTarget) {
+         injectStage = true;
+         if (stageTarget.comments) {
+           for (const cid of Object.keys(stageTarget.comments)) {
+             if (cid.startsWith('overview_comment_')) {
+               targetsWithExistingGuide.push("프로젝트 전반 가이드");
+               break;
+             }
+           }
+         }
+       }
+    }
+
+    if (injectStage) {
+      // 주입 차단 필터링: 최초 전체 JSON 주입 시 개별 스프라이트에는 가이드 주석이 들어가지 않도록 제어
+    } else {
+      for (const [targetName, commentText] of Object.entries(commentsJson)) {
+      if (!commentText || typeof commentText !== 'string') continue;
+      const target = targets.find(t => {
+        if (t.isStage && targetName === "무대(배경)") return true;
+        return t.sprite && t.sprite.name === targetName;
+      });
+      if (target && target.comments) {
+        for (const cid of Object.keys(target.comments)) {
+          if (cid.startsWith('guide_comment_')) {
+            if (!targetsWithExistingGuide.includes(targetName)) {
+               targetsWithExistingGuide.push(targetName);
+            }
+            break;
+          }
+        }
+      }
+    }
+    }
+    
+    if (targetsWithExistingGuide.length > 0) {
+      const confirmMsg = `${targetsWithExistingGuide.join(', ')}에 이미 가이드 주석이 존재합니다.\\n기존 주석을 지우고 새로 교체하시겠습니까?`;
+      if (!window.confirm(confirmMsg)) {
+        return { ok: false, error: '주석 덮어쓰기가 취소되었습니다.' };
+      }
+    }
+
+    function cleanExistingOverviewComments(target) {
+      if (!target || !target.comments) return;
+      for (const cid of Object.keys(target.comments)) {
+        if (cid.startsWith('overview_comment_')) {
+          delete target.comments[cid];
+        }
+      }
+    }
+
+    function cleanExistingGuideComments(target) {
+      if (!target || !target.comments) return;
+      for (const cid of Object.keys(target.comments)) {
+        if (cid.startsWith('guide_comment_')) {
+          delete target.comments[cid];
+        }
+      }
+    }
+    
+    function getDynamicPlacement(target) {
+      let maxX = 50;
+      let minY = 50;
+      if (target.blocks && target.blocks._blocks) {
+        Object.values(target.blocks._blocks).forEach(b => {
+          if (b.topLevel && !b.shadow) {
+            if (b.x > maxX) maxX = b.x;
+          }
+        });
+      }
+      if (target.comments) {
+        Object.values(target.comments).forEach(c => {
+          if (!c.id.startsWith('guide_comment_') && !c.id.startsWith('overview_comment_')) {
+            const rightEdge = (c.x || 0) + (c.width || 200);
+            if (rightEdge > maxX) maxX = rightEdge;
+          }
+        });
+      }
+      return { x: Math.max(400, maxX + 100), y: minY };
+    }
+
+    if (injectStage && stageTarget) {
+      cleanExistingOverviewComments(stageTarget);
+      
+      const cleanOverview = (overview || '').replace(/\\n/g, '\n');
+      const cleanMission = (mission || '').replace(/\\n/g, '\n');
+      
+      let masterText = `[프로젝트 개요]\n${cleanOverview}\n\n[전체 구현 단계 요약]\n`;
+      for (const [tName, text] of Object.entries(commentsJson)) {
+         const lines = text.split(/\r?\n|\\n/);
+         let stepLine = lines[0] || '';
+         let summaryLine = lines[1] && lines[1].startsWith('요약:') ? lines[1].replace('요약:', '').trim() : '';
+         if (stepLine.startsWith('[')) stepLine = stepLine.substring(1, stepLine.length - 1);
+         
+         masterText += `- ${stepLine} (${tName}): ${summaryLine}\n`;
+      }
+      masterText += `\n[도전 미션]\n${cleanMission}`;
+      
+      const pos = getDynamicPlacement(stageTarget);
+      const commentId = 'overview_comment_' + Date.now() + Math.random().toString(36).substr(2, 5);
+      
+      if (!stageTarget.comments) stageTarget.comments = {};
+      stageTarget.comments[commentId] = {
+        id: commentId,
+        blockId: null, 
+        x: pos.x,
+        y: pos.y,
+        width: 480,
+        height: 350,
+        minimized: false,
+        text: masterText
+      };
+      successCount++;
+    }
+
+    if (injectStage) {
+      // 주입 차단 필터링: 최초 전체 JSON 주입 시 개별 스프라이트에는 가이드 주석이 들어가지 않도록 제어
+    } else {
+      for (const [targetName, commentText] of Object.entries(commentsJson)) {
+      if (!commentText || typeof commentText !== 'string') continue;
+
+      const target = targets.find(t => {
+        if (t.isStage && targetName === "무대(배경)") return true;
+        return t.sprite && t.sprite.name === targetName;
+      });
+
+      if (!target) {
+        errorMsgs.push(`스프라이트 [${targetName}]를 찾을 수 없습니다.`);
+        continue;
+      }
+      
+      if (target.isStage && injectStage) continue;
+
+      try {
+        cleanExistingGuideComments(target);
+        
+        const pos = getDynamicPlacement(target);
+        if (!target.comments) target.comments = {};
+        
+        const commentId = 'guide_comment_' + Date.now() + Math.random().toString(36).substr(2, 5);
+        const cleanCommentText = (commentText || '').replace(/\\n/g, '\n');
+        
+        target.comments[commentId] = {
+          id: commentId,
+          blockId: null, 
+          x: pos.x,
+          y: pos.y,
+          width: 480,
+          height: 350,
+          minimized: false,
+          text: cleanCommentText
+        };
+        successCount++;
+      } catch (e) {
+        errorMsgs.push(`[${targetName}] 에러: ${e.message}`);
+      }
+    }
+    }
+
+    try {
+      if (typeof vm.emitWorkspaceUpdate === 'function') {
+        vm.emitWorkspaceUpdate();
+      }
+    } catch (e) {}
+
+    publishSnapshot(true);
+    return { 
+      ok: successCount > 0, 
+      message: successCount > 0 ? `✅ 가이드 주석이 성공적으로 주입되었습니다.` : undefined,
+      error: successCount > 0 ? undefined : errorMsgs.join(', ')
+    };
   }
 
   // Poll DOM until React is loaded and VM is found

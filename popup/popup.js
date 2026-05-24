@@ -3,7 +3,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     const toggleBtn = document.getElementById("btn-toggle");
     if (toggleBtn) {
       toggleBtn.addEventListener("click", () => {
-        chrome.tabs.sendMessage(tab.id, { type: "toggle-hud" });
+        chrome.tabs.sendMessage(tab.id, { type: "toggle-hud" }, () => {
+          if (chrome.runtime.lastError) { /* ignore */ }
+        });
         window.close();
       });
     }
@@ -39,7 +41,9 @@ if (btnCleanGhost) {
   btnCleanGhost.addEventListener("click", () => {
     chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
       if (tab) {
-        chrome.tabs.sendMessage(tab.id, { type: "CLEANUP_ORPHANED_COMMENTS" });
+        chrome.tabs.sendMessage(tab.id, { type: "CLEANUP_ORPHANED_COMMENTS" }, () => {
+          if (chrome.runtime.lastError) { /* ignore */ }
+        });
       }
     });
   });
@@ -176,6 +180,17 @@ btnSave.addEventListener("click", () => {
       updateBadge(true);
       btnSave.textContent = "✅ 저장됨";
       setTimeout(() => btnSave.textContent = "💾 저장 및 대기", 2000);
+      
+      chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+        if (tab) {
+          chrome.tabs.sendMessage(tab.id, { 
+            type: "TRIGGER_POPUP_INJECT", 
+            payload: { jsonStr: val } 
+          }, () => {
+            if (chrome.runtime.lastError) { /* ignore */ }
+          });
+        }
+      });
     });
   } catch(e) {
     alert("JSON 파싱 에러: " + e.message);

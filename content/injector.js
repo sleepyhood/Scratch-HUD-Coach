@@ -90,45 +90,7 @@
         customInjectFired = true; // Lock synchronously to prevent multiple rapid triggers
         chrome.storage.local.get(["custom_inject_pending", "custom_inject_json"], (res) => {
           if (res.custom_inject_pending && res.custom_inject_json) {
-            try {
-              const parsedJson = JSON.parse(res.custom_inject_json);
-              
-              // Deparse sequences to flat blocks in content script where ScratchParser is available
-              const deparsedJson = {};
-              if (window.ScratchParser) {
-                for (const [targetName, sequences] of Object.entries(parsedJson)) {
-                  if (!Array.isArray(sequences) || sequences.length === 0) continue;
-                  
-                  let maxY = 80;
-                  if (currentSnapshot && currentSnapshot.rawBlocksByTarget && currentSnapshot.rawBlocksByTarget[targetName]) {
-                    const blocks = currentSnapshot.rawBlocksByTarget[targetName];
-                    let maxFoundY = null;
-                    Object.values(blocks).forEach(b => {
-                      if (b.topLevel && b.y !== undefined) {
-                        if (maxFoundY === null || b.y > maxFoundY) maxFoundY = b.y;
-                      }
-                    });
-                    if (maxFoundY !== null) {
-                      maxY = maxFoundY + 100;
-                    }
-                  }
-                  
-                  deparsedJson[targetName] = window.ScratchParser.deparse(sequences, { x: 80, y: maxY });
-                }
-              }
-
-              // 1회성 주입을 위해 플래그 즉시 초기화
-              chrome.storage.local.set({ custom_inject_pending: false }, () => {
-                // Bulk Update 메시지 전송
-                window.postMessage({
-                  source: "scratch-hud-content",
-                  type: "APPLY_CUSTOM_BULK_UPDATE",
-                  payload: { deparsedJson: deparsedJson }
-                }, "*");
-              });
-            } catch (e) {
-              console.error("[HUD Coach] Custom Inject JSON parse error:", e);
-            }
+            injectJsonDirect(res.custom_inject_json);
           } else {
             // No pending injection found, release the lock
             customInjectFired = false;
@@ -391,17 +353,73 @@
     }
   });
 
-  // Listen for storage changes to allow multiple injections without reloading
-  chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === "local" && changes.custom_inject_pending && changes.custom_inject_pending.newValue === true) {
-      customInjectFired = false;
-      // Request a snapshot immediately to trigger injection
-      window.postMessage({
-        source: "scratch-hud-content",
-        type: "REQUEST_SNAPSHOT"
-      }, "*");
+  function injectJsonDirect(jsonStr) {
+    try {
+      const parsedJson = JSON.parse(jsonStr);
+      const envData = {
+        sprites: currentSnapshot ? (currentSnapshot.allSpriteNames || []) : [],
+        variables: currentSnapshot ? (currentSnapshot.allVariables || []) : [],
+        broadcasts: currentSnapshot ? (currentSnapshot.allBroadcasts || []) : []
+      };
+      
+      const deparsedJson = {};
+      if (window.ScratchParser) {
+        // 1. 사전 검증 수행
+        const validation = window.ScratchParser.validateStrict(parsedJson, envData);
+        if (!validation.ok) {
+          const errorList = validation.errors.map(err => `• ${err}`).join('<br>');
+          showToast(`❌ <b>블록 사전 검증 실패 (주입 차단됨)</b><br>${errorList}`, 'warning');
+          chrome.storage.local.set({ custom_inject_pending: false });
+          return;
+        }
+
+        // 2. 경고 노출
+        if (validation.warnings && validation.warnings.length > 0) {
+          const warnList = validation.warnings.map(w => `• ${w}`).join('<br>');
+          showToast(`⚠️ <b>주의: 프로젝트 환경 정보 불일치</b><br>${warnList}`, 'warning');
+        }
+
+        for (const [targetName, sequences] of Object.entries(parsedJson)) {
+          if (!Array.isArray(sequences) || sequences.length === 0) continue;
+          
+          let maxY = 80;
+          if (currentSnapshot && currentSnapshot.rawBlocksByTarget && currentSnapshot.rawBlocksByTarget[targetName]) {
+            const blocks = currentSnapshot.rawBlocksByTarget[targetName];
+            let maxFoundY = null;
+            Object.values(blocks).forEach(b => {
+              if (b.topLevel && b.y !== undefined) {
+                if (maxFoundY === null || b.y > maxFoundY) maxFoundY = b.y;
+              }
+            });
+            if (maxFoundY !== null) {
+              maxY = maxFoundY + 100;
+            }
+          }
+          
+          deparsedJson[targetName] = window.ScratchParser.deparse(sequences, { x: 80, y: maxY });
+        }
+      }
+
+      chrome.storage.local.set({ custom_inject_pending: false }, () => {
+        window.postMessage({
+          source: "scratch-hud-content",
+          type: "APPLY_CUSTOM_BULK_UPDATE",
+          payload: { deparsedJson: deparsedJson }
+        }, "*");
+      });
+    } catch (e) {
+      console.error("[HUD Coach] Custom Inject JSON parse error:", e);
+    }
+  }
+
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === "TRIGGER_POPUP_INJECT" && request.payload && request.payload.jsonStr) {
+      injectJsonDirect(request.payload.jsonStr);
+      sendResponse({ ok: true });
+      return;
     }
   });
+
 
   // Initialize
   setTimeout(() => {

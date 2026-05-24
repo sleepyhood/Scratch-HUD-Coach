@@ -16,158 +16,7 @@
 
   const root = document.createElement("div");
   root.id = "hud-coach-root";
-  root.innerHTML = `
-    <div id="hud-coach-header">
-      <div id="hud-coach-title">Scratch HUD Coach</div>
-      <button class="hud-close-btn" id="btn-hud-close" title="HUD 닫기">&times;</button>
-    </div>
-    <div id="hud-tab-nav">
-      <button class="hud-tab-btn active" data-tab="guidebook">📋 가이드북</button>
-      <button class="hud-tab-btn" data-tab="injector">⚡ 블록 주입기</button>
-    </div>
-    <div id="hud-coach-body">
-
-      <!-- Tab 1: 가이드북 생성기 -->
-      <div id="hud-tab-content-guidebook" class="hud-tab-content active">
-
-      <div class="hud-section" style="margin-top: 4px;">
-        <h4>🔍 1단계: 원본 JSON (사전형)</h4>
-        <div class="hud-card">
-          <textarea id="live-json-view" readonly placeholder="현재 화면에 배치된 스크래치 블록의 원본 구조"></textarea>
-        </div>
-      </div>
-
-      <div class="hud-section">
-        <h4>⚡ 2단계: 정규화 파싱(배열형)</h4>
-        <div class="hud-card">
-          <textarea id="live-parsed-view" readonly placeholder="정규화된 논리적 시퀀스 및 주석(comment)이 나타납니다."></textarea>
-        </div>
-      </div>
-
-      <div class="hud-section">
-        <h4 style="color: #4f46e5;">
-          <span>📝 3단계: AI 주석 가이드 생성기</span>
-        </h4>
-        <div class="hud-card">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.06);">
-            <span style="font-size: 12px; font-weight: 600; color: #475569;">가이드북 난이도</span>
-            <select id="hud-comment-level-select" class="hud-select">
-              <option value="basic">기초 단계 (직접 지시)</option>
-              <option value="advanced">심화 단계 (간접 미션)</option>
-            </select>
-          </div>
-
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.06);">
-            <span style="font-size: 12px; font-weight: 600; color: #475569;">가이드북 스타일</span>
-            <select id="hud-comment-style-select" class="hud-select">
-              <option value="text">텍스트 리스트 (기본형)</option>
-              <option value="pseudoblock">유사 블록 구조 (시각화형)</option>
-            </select>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            <button class="ai-btn ai-btn-primary" id="btn-copy-prompt">
-              📋 AI 프롬프트 복사
-            </button>
-            <button class="ai-btn ai-btn-secondary" id="btn-generate-guide">
-              🚀 주석 가이드 생성
-            </button>
-          </div>
-          <div id="ai-status"></div>
-        </div>
-      </div>
-
-      <div class="hud-section">
-        <h4 style="color: #065f46; margin-bottom: 6px;">📄 4단계: 주석 가이드 미리보기</h4>
-        <div class="hud-card">
-          <div style="font-size:11px; color:#065f46; margin-bottom:6px; line-height:1.5; font-weight: 500;">
-            생성된 가이드를 확인하고, 학생용 자료로 복사하세요.
-          </div>
-          <textarea
-            id="guidebook-preview-view"
-            placeholder="🚀 주석 가이드 생성 버튼을 누르면 여기에 결과가 표시됩니다."
-            readonly
-          ></textarea>
-          <div style="margin-top:8px;">
-            <button class="ai-btn ai-btn-guide-copy" id="btn-copy-guide">
-              📋 가이드 복사
-            </button>
-          </div>
-        </div>
-      </div>
-
-      </div> <!-- end of hud-tab-content-guidebook -->
-
-      <!-- Tab 2: 블록 주입기 -->
-      <div id="hud-tab-content-injector" class="hud-tab-content">
-
-        <div class="hud-section" style="margin-top: 4px; border: 2px solid #6366f1; background: #eef2ff;">
-          <h4 style="color: #4338ca; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin: 0;" id="btn-toggle-hud-ai-guide">
-            <span>🤖 AI 프롬프트 가이드 (실시간 환경 연동)</span>
-            <span id="hud-ai-guide-arrow">▼</span>
-          </h4>
-          <div id="hud-ai-guide-content" style="display: none; margin-top: 12px;">
-            <div style="font-size:11px; color:#475569; margin-bottom:6px; line-height:1.5;">
-              복사하여 ChatGPT 등 AI에게 전달하면 현재 환경에 맞는 완벽한 블록 JSON을 만들어줍니다.
-            </div>
-            <textarea id="hud-ai-prompt-preview" readonly style="width: 100%; height: 160px; font-size: 10px; font-family: monospace; background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
-            <div style="margin-top:6px; display:flex; align-items:center; gap:6px; padding:4px 0; border-top:1px dashed rgba(0,0,0,0.08);">
-              <input type="checkbox" id="hud-cb-include-comments" style="cursor:pointer; width:14px; height:14px; accent-color:#6366f1;">
-              <label for="hud-cb-include-comments" style="font-size:11px; color:#475569; cursor:pointer; user-select:none; line-height:1.4;">
-                📝 프로젝트 내 주석(구현 지침) 포함
-              </label>
-            </div>
-            <div id="hud-ghost-cleanup-container" style="margin-top:6px; display:none; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:6px; background:#fff1f2; border:1px solid #fecdd3;">
-              <span style="font-size:11px; color:#be123c; display:flex; align-items:center; gap:4px;">
-                ⚠️ 유령 주석 <strong id="hud-ghost-count">0</strong>개 감지됨
-              </span>
-              <button id="hud-btn-clean-ghost" style="padding:4px 8px; font-size:10px; border-radius:4px; background:#e11d48; color:white; border:none; cursor:pointer; font-weight:bold;">
-                정리하기
-              </button>
-            </div>
-            <div style="margin-top:8px;">
-              <button class="ai-btn" id="btn-hud-copy-ai-prompt" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
-                📋 가이드 전체 복사
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="hud-section" style="margin-top: 8px;">
-          <h4 style="color: #4f46e5; margin-bottom: 8px;">⚡ AI 생성 JSON 즉시 주입</h4>
-          <div class="hud-card" style="padding: 12px;">
-            <textarea id="hud-custom-json-input" placeholder="AI가 생성한 JSON 스키마를 여기에 붙여넣으세요..." style="width: 100%; height: 120px; font-size: 10px; font-family: monospace; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; outline: none; resize: vertical; box-sizing: border-box; margin-bottom: 8px;"></textarea>
-            <button class="ai-btn" id="btn-hud-instant-inject" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">
-              🚀 즉시 주입하기
-            </button>
-          </div>
-        </div>
-
-        <div class="hud-section" style="margin-top: 8px;">
-          <h4 style="color: #e11d48; margin-bottom: 8px;">🗑️ 워크스페이스 관리 도구</h4>
-          <div class="hud-card" style="padding: 12px; background: #fff1f2; border: 1px solid #fecdd3;">
-            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 10px; border-bottom: 1px dashed rgba(225, 29, 72, 0.2); padding-bottom: 8px;">
-              <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #9f1239; cursor: pointer; user-select: none;">
-                <input type="checkbox" id="hud-clear-blocks-cb" checked style="cursor: pointer; width: 13px; height: 13px; accent-color: #ef4444;">
-                🧩 블록 삭제
-              </label>
-              <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #9f1239; cursor: pointer; user-select: none;">
-                <input type="checkbox" id="hud-clear-comments-cb" checked style="cursor: pointer; width: 13px; height: 13px; accent-color: #ef4444;">
-                📝 주석 삭제
-              </label>
-            </div>
-            <button class="ai-btn" id="btn-hud-clear-workspace" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-              🗑️ 선택한 요소 지우기
-            </button>
-            <div id="hud-clear-warning-desc" style="font-size: 9.5px; color: #be123c; margin-top: 6px; text-align: center; line-height: 1.4;">
-              선택한 요소가 모든 스프라이트에서 영구 삭제됩니다.
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  `;
+  root.innerHTML = window.HUD_HTML_TEMPLATE || '';
   document.body.appendChild(root);
 
   // Toggle logic
@@ -179,9 +28,15 @@
     root.classList.remove("open");
     toggleBtn.textContent = "HUD 열기";
   };
-  toggleBtn.addEventListener("click", () =>
-    root.classList.contains("open") ? closeHUD() : openHUD()
-  );
+  if (window.HUDUiUtils && window.HUDUiUtils.initDraggableFAB) {
+    window.HUDUiUtils.initDraggableFAB(toggleBtn, () => {
+      root.classList.contains("open") ? closeHUD() : openHUD();
+    });
+  } else {
+    toggleBtn.addEventListener("click", () =>
+      root.classList.contains("open") ? closeHUD() : openHUD()
+    );
+  }
   
   root.querySelector('#btn-hud-close').addEventListener('click', closeHUD);
 
@@ -277,6 +132,7 @@
       chrome.storage.sync.set({ hud_include_comments: hudIncludeComments });
       // Regenerate prompt immediately
       rebuildAiPrompt();
+      updateGuideUI();
     });
   }
 
@@ -286,6 +142,7 @@
       hudIncludeComments = changes.hud_include_comments.newValue;
       if (cbIncludeComments) cbIncludeComments.checked = hudIncludeComments;
       rebuildAiPrompt();
+      updateGuideUI();
     }
   });
 
@@ -402,7 +259,288 @@
     });
   }
 
+  // ── 가이드북 탭 추가 바인딩 ──────────────────────────────────────
+  const btnGuideInject = root.querySelector('#btn-hud-guide-inject');
+  if (btnGuideInject) {
+    btnGuideInject.addEventListener('click', () => {
+      const jsonStr = root.querySelector('#hud-guide-json-input').value;
+      if (!jsonStr.trim()) {
+        showAiStatus('주석 JSON 코드를 입력해주세요.', 'warning');
+        return;
+      }
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const overview = parsed.개요;
+        const mission = parsed.미션;
+        const commentsJson = parsed.가이드 || parsed;
+        
+        window.postMessage({
+          source: "scratch-hud-content",
+          type: "APPLY_COMMENTS_ONLY",
+          payload: { commentsJson, overview, mission }
+        }, "*");
+      } catch (e) {
+        showAiStatus('❌ JSON 파싱 오류: ' + e.message, 'error');
+      }
+    });
+  }
+
+  const btnGuideTextCopy = root.querySelector('#btn-hud-guide-text-copy');
+  if (btnGuideTextCopy) {
+    btnGuideTextCopy.addEventListener('click', async () => {
+      const jsonStr = root.querySelector('#hud-guide-json-input').value;
+      if (!jsonStr.trim()) {
+        showAiStatus('변환할 주석 JSON 코드가 없습니다.', 'warning');
+        return;
+      }
+      try {
+        const parsed = JSON.parse(jsonStr);
+        let formattedText = '';
+        
+        if (parsed.개요) {
+          formattedText += `[프로젝트 개요]\n${parsed.개요}\n\n`;
+        }
+        
+        const guides = parsed.가이드 || parsed;
+        if (typeof guides === 'object') {
+          formattedText += `[구현 가이드]\n`;
+          for (const [spriteName, guideText] of Object.entries(guides)) {
+            if (typeof guideText === 'string') {
+              formattedText += `■ ${spriteName}\n${guideText}\n\n`;
+            }
+          }
+        }
+        
+        if (parsed.미션) {
+          formattedText += `[도전 미션]\n${parsed.미션}\n`;
+        }
+
+        if (!formattedText.trim()) {
+          formattedText = jsonStr; // fallback to raw string if nothing matched
+        }
+
+        await navigator.clipboard.writeText(formattedText);
+        showAiStatus('✅ 텍스트 가이드가 클립보드에 복사되었습니다!', 'success');
+      } catch (e) {
+        showAiStatus('❌ 텍스트 변환 실패: ' + e.message, 'error');
+      }
+    });
+  }
+
+  const btnClearCommentsOnly = root.querySelector('#btn-hud-clear-comments-only');
+  if (btnClearCommentsOnly) {
+    btnClearCommentsOnly.addEventListener('click', () => {
+      if (confirm("⚠️ 모든 스프라이트의 가이드 주석을 완전히 삭제하시겠습니까?\n(블록 코드는 안전하게 보존됩니다.)")) {
+        window.postMessage({
+          source: "scratch-hud-content",
+          type: "CLEAR_WORKSPACE_PARTIAL",
+          payload: { clearBlocks: false, clearComments: true }
+        }, "*");
+      }
+    });
+  }
+
+  // UI Utilities 초기화
+  if (window.HUDUiUtils) {
+    window.HUDUiUtils.initJsonFormatterAndValidator(root, showAiStatus);
+    window.HUDUiUtils.initAccordions(root);
+  }
+
   // ── 프롬프트 재생성 함수 ──────────────────────────────────────────
+  
+  function updateGuideUI() {
+    if (!lastSnapshot || !lastParsedByTarget) return;
+
+    const rawComments = lastSnapshot.rawCommentsByTarget || {};
+    const cleanComments = lastSnapshot.cleanCommentsByTarget || {};
+    let hasStageGuide = false;
+    
+    // 1. ID 접두사로 검사
+    for (const targetName of Object.keys(rawComments)) {
+      const targetComments = rawComments[targetName] || {};
+      for (const cid of Object.keys(targetComments)) {
+        if (cid.startsWith('overview_comment_')) {
+          hasStageGuide = true;
+          break;
+        }
+      }
+      if (hasStageGuide) break;
+    }
+    
+    // 2. 하위 호환성을 위해 텍스트 키워드로도 검사
+    if (!hasStageGuide) {
+      for (const [targetName, texts] of Object.entries(cleanComments)) {
+        for (const text of texts) {
+          if (text.includes("개요") && text.includes("미션")) {
+            hasStageGuide = true;
+            break;
+          }
+        }
+        if (hasStageGuide) break;
+      }
+    }
+    
+    const banner = root.querySelector('#hud-prompt-guide-banner');
+    const checklist = root.querySelector('#hud-sprite-checklist');
+    const copyBtn = root.querySelector('#btn-copy-prompt');
+    const placeholder = root.querySelector('#hud-sprite-checklist-placeholder');
+    const progressContainer = root.querySelector('#hud-guide-progress-container');
+    const progressStatus = root.querySelector('#hud-guide-progress-status');
+    const progressList = root.querySelector('#hud-guide-progress-list');
+    
+    if (hasStageGuide) {
+      if (banner) {
+        banner.innerHTML = "✅ <b>설계도 분석 완료!</b> 이제 세부 코딩 지침을 생성하고 싶은 대상 스프라이트를 아래에서 복수 선택하여 프롬프트를 복사하세요.";
+        banner.style.backgroundColor = "#dcfce7";
+        banner.style.color = "#166534";
+      }
+      if (copyBtn) {
+        copyBtn.innerHTML = "📋 선택한 스프라이트 상세 가이드 프롬프트 복사";
+      }
+      if (placeholder) {
+        placeholder.style.display = "none";
+      }
+      
+      if (checklist && !checklist.hasAttribute('data-populated')) {
+        checklist.innerHTML = "";
+        for (const targetName of Object.keys(lastParsedByTarget)) {
+          const label = document.createElement("label");
+          label.style.fontSize = "11px";
+          label.style.color = "#475569";
+          label.style.display = "flex";
+          label.style.alignItems = "center";
+          label.style.gap = "4px";
+          
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.className = "sprite-checkbox";
+          cb.value = targetName;
+          cb.style.accentColor = "#6366f1";
+          
+          label.appendChild(cb);
+          label.appendChild(document.createTextNode(targetName));
+          checklist.appendChild(label);
+        }
+        checklist.setAttribute('data-populated', 'true');
+      }
+
+      // Update comment injection progress checklist
+      if (progressContainer && progressStatus && progressList) {
+        progressContainer.style.display = 'block';
+        progressList.innerHTML = '';
+        
+        const rawComments = lastSnapshot.rawCommentsByTarget || {};
+        const targets = Object.keys(lastParsedByTarget);
+        let completedCount = 0;
+        let totalCount = 0;
+        
+        // 1. 프로젝트 전반 가이드 (Master Overview) 체크
+        totalCount++;
+        let isOverviewCompleted = false;
+        for (const targetName of Object.keys(rawComments)) {
+          const targetComments = rawComments[targetName] || {};
+          for (const cid of Object.keys(targetComments)) {
+            if (cid.startsWith('overview_comment_')) {
+              isOverviewCompleted = true;
+              break;
+            }
+          }
+          if (isOverviewCompleted) break;
+        }
+        if (isOverviewCompleted) {
+          completedCount++;
+        }
+        
+        const overviewItem = document.createElement('div');
+        overviewItem.style.display = 'flex';
+        overviewItem.style.justifyContent = 'space-between';
+        overviewItem.style.alignItems = 'center';
+        overviewItem.style.padding = '4px 0';
+        overviewItem.style.borderBottom = '1px solid #e2e8f0';
+        
+        const overviewNameSpan = document.createElement('span');
+        overviewNameSpan.textContent = '📋 프로젝트 전반 가이드';
+        overviewNameSpan.style.fontWeight = '600';
+        overviewNameSpan.style.color = '#312e81';
+        
+        const overviewStatusSpan = document.createElement('span');
+        overviewStatusSpan.innerHTML = isOverviewCompleted 
+          ? '<span style="color:#166534; font-weight:bold;">✅ 주입 완료</span>' 
+          : '<span style="color:#b91c1c; font-weight:bold;">❌ 미주입</span>';
+        
+        overviewItem.appendChild(overviewNameSpan);
+        overviewItem.appendChild(overviewStatusSpan);
+        progressList.appendChild(overviewItem);
+
+        // 2. 개별 스프라이트 가이드 체크
+        for (const targetName of targets) {
+          totalCount++;
+          let isCompleted = false;
+          
+          // Check if there is any comment with id starting with 'guide_comment_'
+          const targetComments = rawComments[targetName] || {};
+          for (const cid of Object.keys(targetComments)) {
+            if (cid.startsWith('guide_comment_')) {
+              isCompleted = true;
+              break;
+            }
+          }
+          
+          if (isCompleted) {
+            completedCount++;
+          }
+          
+          const item = document.createElement('div');
+          item.style.display = 'flex';
+          item.style.justifyContent = 'space-between';
+          item.style.alignItems = 'center';
+          item.style.padding = '4px 0';
+          item.style.borderBottom = '1px solid #e2e8f0';
+          
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = targetName === "무대(배경)" ? "🎬 무대(배경) 코드 가이드" : `👾 ${targetName}`;
+          nameSpan.style.fontWeight = '500';
+          
+          const statusSpan = document.createElement('span');
+          statusSpan.innerHTML = isCompleted 
+            ? '<span style="color:#166534; font-weight:bold;">✅ 주입 완료</span>' 
+            : '<span style="color:#b91c1c; font-weight:bold;">❌ 미주입</span>';
+          
+          item.appendChild(nameSpan);
+          item.appendChild(statusSpan);
+          progressList.appendChild(item);
+        }
+        
+        progressStatus.textContent = `${completedCount}/${totalCount} 완료`;
+      }
+
+    } else {
+      if (banner) {
+        banner.innerHTML = "⚠️ <b>프로젝트 전체 요약(뼈대)을 설계하기 위한 프롬프트입니다.</b> AI가 전체 개요 및 단계별 요약 JSON을 출력하도록 구성됩니다.";
+        banner.style.backgroundColor = "#e0e7ff";
+        banner.style.color = "#3730a3";
+      }
+      if (copyBtn) {
+        copyBtn.innerHTML = "📋 프로젝트 전체 뼈대 프롬프트 복사";
+      }
+      if (checklist) {
+        checklist.innerHTML = `
+          <label style="font-size:11px; color:#475569; display:flex; align-items:center; gap:4px; font-weight:bold;">
+            <input type="checkbox" id="hud-cb-stage-overview" value="STAGE_AND_OVERVIEW" checked disabled style="accent-color:#6366f1;">
+            무대(배경) 및 개요 (기본 포함)
+          </label>
+          <div id="hud-sprite-checklist-placeholder" style="font-size:10px; color:#ef4444; margin-top:4px; padding-left: 4px;">
+            ⚠️ 무대에 가이드 주석이 먼저 주입되어야 개별 스프라이트 선택이 가능해집니다.
+          </div>
+        `;
+        checklist.removeAttribute('data-populated');
+      }
+      if (progressContainer) {
+        progressContainer.style.display = 'none';
+      }
+    }
+  }
+
   function rebuildAiPrompt() {
     const preview = root.querySelector('#hud-ai-prompt-preview');
     if (!preview || !lastSnapshot) return;
@@ -489,6 +627,7 @@
       
       // Update AI Prompt Guide with environment variables and optional comments
       rebuildAiPrompt();
+      updateGuideUI();
     }
 
     if (data.type === "CLEANUP_RESULT") {
@@ -727,65 +866,54 @@
 ┌─ 📥 [고기] 신호를 받았을 때 동작을 시작하도록 만듭니다.
 └─ 🖱 마우스를 클릭하면 [고기 복제본]을 새로 만들고 실행을 멈추도록 합니다.`;
 
-  const PROMPT_TEMPLATE =
+  const PROMPT_TEMPLATE_INITIAL =
 `당신은 스크래치 3.0(Scratch 3.0) 전문 코칭 AI이자 교육 자료 제작자입니다.
 전달받은 [정답 프로젝트 JSON]은 완성된 스크래치 과제의 논리 구조입니다.
-이 정답 코드를 분석하여, 학생들이 단계별로 따라 하며 스스로 이 프로젝트를 완성할 수 있도록 돕는 "스캐폴딩 주석 가이드북"을 작성해 주세요.
+이 정답 코드를 분석하여, 프로젝트의 전체 개요 및 각 스프라이트별 단계 요약을 포함하는 "최초 뼈대 가이드북"을 작성해 주세요.
 
 ### 🗣 작성 규칙
-
-- **대상 독자:** 초등학교 저학년도 읽을 수 있도록, 짧고 쉬운 말로 씁니다.
-- **간결성:** 각 번호 항목은 **1~2줄 이내**로 끝냅니다. 불필요한 수식어나 설명은 과감히 생략합니다.
-- **문장 스타일 구분:** 난이도에 따라 지정된 문장 스타일을 준수합니다.
-  - 기초 단계: 명시적인 [블록이름] + 짧은 동작어의 나열형 (문장형 종결어 ❌). 예: "🚩 [클릭했을 때] 가져오기"
-  - 심화 단계: 간접적인 목적 중심의 문장형 종결어 (~합니다, ~해보세요). 예: "🚩 초록색 깃발을 클릭하면 작동하도록 만듭니다."
-- **이모지 활용:** 이모지로 블록 종류를 시각적으로 구분해도 됩니다. (예: 🚩 이벤트, 📍 위치, 🔁 반복, ❓ 조건, 📢 신호 송신, 📥 신호 수신, 🖱 마우스 클릭)
-- **금지:** 과도하게 기계적이거나 딱딱한 번역체 표현은 절대 쓰지 마세요.
-  - ❌ 나쁜 예: "전체 스크립트 최종 최하단 마무리 지점에 동작 블록을 완벽 도킹하여 수평 정방향 축을 유지시킵니다."
-  - ❌ 금지어: 완벽 도킹, 수평 정방향 축, 메모리 적재, 루프 내부 분기, 세션 시작 등
+- 개별 스프라이트의 구체적인 블록 조립 지침(예: "1. 🚩 클릭했을 때...")은 절대 포함하지 않습니다. 오직 '요약' 정보만 제공합니다.
+- 대상 독자는 초등학교 저학년입니다.
+- 각 단계의 요약은 무조건 1줄 이내로 매우 간결하게 핵심 요약 정보만 제공하도록 규칙을 엄격하게 조정합니다.
 
 ### 📄 전체 출력 구조 (반드시 이 순서와 규칙을 지켜주세요)
+가이드북은 아래 구조를 가지는 **단일 JSON 객체**로만 출력합니다. Markdown 기호(\`\`\`)나 다른 설명은 일절 추가하지 마세요.
+또한 JSON 문자열 값 내부에 줄바꿈을 표현할 때는 반드시 이스케이프된 문자열인 "\\n" 만을 사용하고, 절대 실제 줄바꿈을 넣지 마세요.
 
-가이드북은 아래 3개 영역을 순서대로 출력합니다. Markdown 백틱 기호 없이 순수 텍스트로만 반환합니다.
-
-#### [영역 1] 프로젝트 개요 — 맨 위에 1회만 작성
-
-[프로젝트 개요]
-이 프로젝트가 무엇을 만드는 것인지, 어떤 동작을 하는지를 초등학생이 이해할 수 있도록 2~3문장으로 설명합니다.
-등장하는 스프라이트 이름, 주요 기능, 플레이 방법(게임인 경우)을 간략히 포함합니다.
-
----
-
-#### [영역 2] 스프라이트별 단계 안내 — 핵심 본문
-
-아래 규칙을 반드시 준수합니다:
-
-규칙 A — 1섹션 = 1스프라이트: 하나의 섹션 안에 ■ 스프라이트 이름은 반드시 하나만 등장합니다. 같은 단계에 여러 스프라이트가 있더라도 절대 한 섹션에 묶지 마세요.
-
-규칙 B — 단계 제목 반복: 동일한 단계(예: "1단계")에 여러 스프라이트가 속하면 [단계 제목]과 목표:를 각 스프라이트 섹션마다 똑같이 반복 작성합니다.
-
-규칙 C — 섹션 구분: 각 섹션은 --- 구분선으로 분리합니다.
-
-규칙 D — 단계 묶음 기준: 논리적으로 같은 시점에 이루어지는 여러 스프라이트의 스크립트는 같은 단계 번호를 공유합니다. 단계 번호는 스프라이트 수가 아닌 "구현 시점의 논리 단위"로 결정합니다.
-
-출력 포맷 (섹션 반복 단위):
-
-[N단계: 단계 제목]
-목표: 이 단계에서 이 스프라이트가 완성할 동작을 한 줄로 요약합니다.
-
-■ 스프라이트 이름
-1. 구현 가이드 (난이도별 차등 적용, 나열형으로 작성)
-2. 구현 가이드
+{
+  "개요": "이 프로젝트가 무엇을 만드는 것인지, 어떤 동작을 하는지를 초등학생이 이해할 수 있도록 2~3문장으로 설명합니다.",
+  "가이드": {
+    "스프라이트이름1": "[N단계: 단계 제목]\\n요약: [단 1줄의 핵심 요약]",
+    "스프라이트이름2": "[N단계: 단계 제목]\\n요약: [단 1줄의 핵심 요약]"
+  },
+  "미션": "완성된 프로젝트를 발전시킬 도전 과제 2~3가지를 의문문 형태로 작성합니다.\\n1. ...\\n2. ..."
+}
 
 ---
 
-#### [영역 3] 응용 미션 — 맨 아래에 1회만 작성
+[정답 프로젝트 JSON]
+{JSON_DATA}`;
 
-[🏆 응용 미션 / 도전 과제]
-완성된 프로젝트를 더 발전시킬 수 있는 도전 과제를 2~3가지 제시합니다.
-항목은 반드시 학생 스스로 생각하도록 유도하는 의문문(~할 수 있을까요? / ~하려면 어떻게 해야 할까요?) 형태로 작성합니다.
-1. 미션 내용 (의문문)
-2. 미션 내용 (의문문)
+  const PROMPT_TEMPLATE_DETAIL =
+`당신은 스크래치 3.0(Scratch 3.0) 전문 코칭 AI이자 교육 자료 제작자입니다.
+전달받은 [정답 프로젝트 JSON]은 완성된 스크래치 과제의 논리 구조입니다.
+이 정답 코드를 분석하여, 사용자가 선택한 특정 스프라이트들에 대한 "상세 블록 조립 가이드"를 작성해 주세요.
+
+### 🗣 작성 규칙
+- 이미 프로젝트 개요와 미션은 작성되었으므로, **오직 "가이드" 객체만 반환**합니다. (최상위 "개요"와 "미션" 키는 제외하세요)
+- 대상 독자: 초등학교 저학년
+- 간결성: 각 번호 항목은 1~2줄 이내로 끝냅니다.
+- 문장 스타일 구분: 난이도에 따라 지정된 문장 스타일을 준수합니다.
+
+### 📄 전체 출력 구조 (반드시 이 순서와 규칙을 지켜주세요)
+가이드북은 아래 구조를 가지는 **단일 JSON 객체**로만 출력합니다. Markdown 기호(\`\`\`)나 다른 설명은 일절 추가하지 마세요.
+
+{
+  "가이드": {
+    "선택된스프라이트1": "[N단계: 단계 제목]\n요약: [이 단계에서 수행하는 핵심 작업 요약]\n1. 구현 가이드...\n2. 구현 가이드...",
+    "선택된스프라이트2": "[N단계: 단계 제목]\n요약: [이 단계에서 수행하는 핵심 작업 요약]\n1. 구현 가이드...\n2. 구현 가이드..."
+  }
+}
 
 ---
 
@@ -797,18 +925,11 @@
 
 ### 💡 실제 적용 예시 (고기굽기 프로젝트 기준 전체 출력 구조)
 
-[프로젝트 개요]
-이 프로젝트는 접시를 클릭해서 불판에 고기를 올리고, 고기가 다 구워지면 점수를 얻는 요리 게임입니다. 고기접시, 불판, 고기 스프라이트가 서로 신호를 주고받으며 함께 작동합니다. 초록 깃발을 눌러 시작해 보세요!
-
----
-
-{LEVEL_EXAMPLE}
-
----
-
-[🏆 응용 미션 / 도전 과제]
-1. 고기를 3번 이상 올렸을 때 "오늘의 요리사!"라고 말하게 만들 수 있을까요?
-2. 고기가 너무 오래 불판에 있으면 탄 모양으로 바뀌도록 하려면 어떻게 코드를 짜야 할까요?
+{
+  "가이드": {
+    "고기접시": "[2단계: 불판에 고기 올리기]\n요약: 접시를 클릭하여 불판에 고기 복제본을 생성하고 신호를 보냅니다.\n1. 마우스 포인터에 닿았는지와 마우스를 클릭했는지를 계속해서 감시하도록 구조를 설계해 보세요.\n2. 조건이 만족되면 다른 스프라이트들이 알 수 있도록 [고기] 신호를 보냅니다."
+  }
+}
 
 ---
 
@@ -825,37 +946,75 @@
       return;
     }
 
-    const selectEl = root.querySelector("#hud-comment-level-select");
-    const level = selectEl ? selectEl.value : "basic";
-
-    const selectStyleEl = root.querySelector("#hud-comment-style-select");
-    const style = selectStyleEl ? selectStyleEl.value : "text";
-
-    let levelStr = "";
-    let levelInst = "";
-    let levelExample = "";
-
-    if (style === "pseudoblock") {
-      levelStr = level === "basic" ? "기초 단계 (직접 지시형 - 유사 블록 구조)" : "심화 단계 (간접 미션형 - 유사 블록 구조)";
-      levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION_PSEUDO : ADVANCED_LEVEL_INSTRUCTION_PSEUDO;
-      levelExample = level === "basic" ? BASIC_LEVEL_EXAMPLE_PSEUDO : ADVANCED_LEVEL_EXAMPLE_PSEUDO;
-    } else {
-      levelStr = level === "basic" ? "기초 단계 (직접 지시형)" : "심화 단계 (간접 미션형)";
-      levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION : ADVANCED_LEVEL_INSTRUCTION;
-      levelExample = level === "basic" ? BASIC_LEVEL_EXAMPLE : ADVANCED_LEVEL_EXAMPLE;
+    const cleanComments = lastSnapshot.cleanCommentsByTarget || {};
+    let hasStageGuide = false;
+    for (const [targetName, texts] of Object.entries(cleanComments)) {
+      for (const text of texts) {
+        if (text.includes("개요") && text.includes("미션")) {
+          hasStageGuide = true;
+          break;
+        }
+      }
+      if (hasStageGuide) break;
     }
 
-    const promptStr = PROMPT_TEMPLATE
-      .replace('{USER_SELECTED_LEVEL}', levelStr)
-      .replace('{LEVEL_SPECIFIC_INSTRUCTION}', levelInst)
-      .replace('{LEVEL_EXAMPLE}', levelExample)
-      .replace('{JSON_DATA}', JSON.stringify(lastParsedByTarget, null, 2));
+    let promptStr = "";
 
-    try {
-      await navigator.clipboard.writeText(promptStr);
-      showAiStatus('✅ 프롬프트가 클립보드에 복사되었습니다. ChatGPT나 Gemini에 붙여넣으세요!', 'success');
-    } catch (err) {
-      showAiStatus('복사에 실패했습니다. 권한을 확인하세요.', 'error');
+    if (!hasStageGuide) {
+      // INITIAL MODE
+      promptStr = PROMPT_TEMPLATE_INITIAL.replace('{JSON_DATA}', JSON.stringify(lastParsedByTarget, null, 2));
+      
+      try {
+        await navigator.clipboard.writeText(promptStr);
+        showAiStatus('✅ 프로젝트 전체 뼈대 설계 프롬프트가 복사되었습니다.', 'success');
+      } catch (err) {
+        showAiStatus('복사에 실패했습니다. 권한을 확인하세요.', 'error');
+      }
+
+    } else {
+      // DETAIL MODE
+      const checkedBoxes = Array.from(root.querySelectorAll('.sprite-checkbox:checked'));
+      if (checkedBoxes.length === 0) {
+        showAiStatus('상세 가이드를 생성할 스프라이트를 하나 이상 선택해주세요.', 'warning');
+        return;
+      }
+
+      const selectedSpriteNames = checkedBoxes.map(cb => cb.value);
+      const filteredData = {};
+      for (const [key, value] of Object.entries(lastParsedByTarget)) {
+        if (selectedSpriteNames.includes(key)) {
+          filteredData[key] = value;
+        }
+      }
+
+      const selectEl = root.querySelector("#hud-comment-level-select");
+      const level = selectEl ? selectEl.value : "basic";
+
+      const selectStyleEl = root.querySelector("#hud-comment-style-select");
+      const style = selectStyleEl ? selectStyleEl.value : "text";
+
+      let levelStr = "";
+      let levelInst = "";
+
+      if (style === "pseudoblock") {
+        levelStr = level === "basic" ? "기초 단계 (직접 지시형 - 유사 블록 구조)" : "심화 단계 (간접 미션형 - 유사 블록 구조)";
+        levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION_PSEUDO : ADVANCED_LEVEL_INSTRUCTION_PSEUDO;
+      } else {
+        levelStr = level === "basic" ? "기초 단계 (직접 지시형)" : "심화 단계 (간접 미션형)";
+        levelInst = level === "basic" ? BASIC_LEVEL_INSTRUCTION : ADVANCED_LEVEL_INSTRUCTION;
+      }
+
+      promptStr = PROMPT_TEMPLATE_DETAIL
+        .replace('{USER_SELECTED_LEVEL}', levelStr)
+        .replace('{LEVEL_SPECIFIC_INSTRUCTION}', levelInst)
+        .replace('{JSON_DATA}', JSON.stringify(filteredData, null, 2));
+
+      try {
+        await navigator.clipboard.writeText(promptStr);
+        showAiStatus(`✅ 선택된 ${selectedSpriteNames.length}개 스프라이트의 상세 가이드 프롬프트가 복사되었습니다.`, 'success');
+      } catch (err) {
+        showAiStatus('복사에 실패했습니다. 권한을 확인하세요.', 'error');
+      }
     }
   });
 
@@ -1245,32 +1404,16 @@
         }
       }
 
-      const previewEl = root.querySelector('#guidebook-preview-view');
-      if (previewEl) {
-        previewEl.value = lines.length > 0
-          ? lines.join('\n')
-          : '분석할 스크립트를 찾을 수 없습니다.';
-      }
-      showAiStatus('✅ 주석 가이드가 생성되었습니다. 아래 미리보기 창을 확인하세요.', 'success');
+      const resultText = lines.length > 0
+        ? lines.join('\n')
+        : '분석할 스크립트를 찾을 수 없습니다.';
+      
+      navigator.clipboard.writeText(resultText).then(() => {
+        showAiStatus('✅ 로컬 가이드가 생성되어 클립보드에 복사되었습니다!', 'success');
+      }).catch(err => {
+        showAiStatus('❌ 복사에 실패했습니다.', 'error');
+      });
     }, 500);
-  });
-
-  // ─────────────────────────────────────────────
-  // 10) [📋 가이드 복사]
-  // ─────────────────────────────────────────────
-
-  root.querySelector('#btn-copy-guide').addEventListener('click', async function() {
-    const previewEl = root.querySelector('#guidebook-preview-view');
-    if (!previewEl || !previewEl.value.trim()) {
-      showAiStatus('복사할 가이드 내용이 없습니다. 먼저 주석 가이드를 생성하세요.', 'warning');
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(previewEl.value);
-      showAiStatus('✅ 가이드가 클립보드에 복사되었습니다!', 'success');
-    } catch (err) {
-      showAiStatus('복사에 실패했습니다. 권한을 확인하세요.', 'error');
-    }
   });
 
 })();

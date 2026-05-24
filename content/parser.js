@@ -128,21 +128,40 @@ class ScratchParser {
    * @param {string} parentId     - 이 그림자의 부모 블록 ID
    * @returns {string} 새로 생성된 그림자 블록 ID
    */
-  static _wrapShadow(value, flatBlocks, parentId) {
+  static _wrapShadow(value, flatBlocks, parentId, inputKey, parentOpcode) {
     const id = ScratchParser.generateId();
-    const isNumber = (
-      typeof value === 'number' ||
-      (typeof value === 'string' && !isNaN(value) && value.trim() !== '')
+    
+    // 색상 코드 감지 규칙
+    const isColorPattern = (typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value));
+    const isColorInput = (
+      inputKey === 'TOUCHINGCOLOR' || 
+      inputKey === 'COLOR' || 
+      inputKey === 'COLOR2'
     );
+    
     const fields = {};
-    if (isNumber) {
-      fields['NUM'] = { name: 'NUM', value: String(value) };
+    let opcode = '';
+    
+    if (isColorPattern || isColorInput) {
+      opcode = 'colour_picker';
+      fields['COLOUR'] = { name: 'COLOUR', value: String(value) };
     } else {
-      fields['TEXT'] = { name: 'TEXT', value: String(value) };
+      const isNumber = (
+        typeof value === 'number' ||
+        (typeof value === 'string' && !isNaN(value) && value.trim() !== '')
+      );
+      if (isNumber) {
+        opcode = 'math_number';
+        fields['NUM'] = { name: 'NUM', value: String(value) };
+      } else {
+        opcode = 'text';
+        fields['TEXT'] = { name: 'TEXT', value: String(value) };
+      }
     }
+    
     flatBlocks[id] = {
       id,
-      opcode: isNumber ? 'math_number' : 'text',
+      opcode,
       next: null,
       parent: parentId,
       inputs: {},
@@ -159,6 +178,7 @@ class ScratchParser {
    */
   static _processInputs(inputsObj, parentId, flatBlocks) {
     if (!inputsObj) return;
+    const parentOpcode = flatBlocks[parentId] ? flatBlocks[parentId].opcode : '';
 
     for (const [key, val] of Object.entries(inputsObj)) {
       if (val === null || val === undefined) continue;
@@ -179,7 +199,7 @@ class ScratchParser {
         }
       } else {
         // 원시값 → 그림자 블록으로 래핑
-        const shadowId = ScratchParser._wrapShadow(val, flatBlocks, parentId);
+        const shadowId = ScratchParser._wrapShadow(val, flatBlocks, parentId, key, parentOpcode);
         flatBlocks[parentId].inputs[key] = { shadow: shadowId, block: shadowId };
       }
     }
@@ -444,6 +464,237 @@ class ScratchParser {
     return healed;
   }
 }
+
+// 스크래치 3.0 공식 지원 Opcode 목록 (Set 상수)
+ScratchParser.OFFICIAL_OPCODES = new Set([
+  // 동작 (motion)
+  "motion_movesteps", "motion_turnright", "motion_turnleft", "motion_goto", "motion_gotoxy",
+  "motion_glideto", "motion_glidesecstoxy", "motion_pointindirection", "motion_pointtowards",
+  "motion_changexby", "motion_setx", "motion_changeyby", "motion_sety",
+  "motion_ifonedgebounce", "motion_setrotationstyle", "motion_xposition", "motion_yposition", "motion_direction",
+
+  // 형태 (looks)
+  "looks_sayforsecs", "looks_say", "looks_thinkforsecs", "looks_think",
+  "looks_show", "looks_hide", "looks_switchcostumeto", "looks_nextcostume",
+  "looks_switchbackdropto", "looks_nextbackdrop", "looks_changesizeby", "looks_setsizeto",
+  "looks_changeeffectby", "looks_seteffectto", "looks_clearentheffects",
+  "looks_goforwardbackwardlayers", "looks_gotofrontback", "looks_costumenumbername",
+  "looks_backdropnumbername", "looks_size",
+
+  // 소리 (sound)
+  "sound_playuntildone", "sound_play", "sound_stopallsounds",
+  "sound_changeeffectby", "sound_seteffectto", "sound_cleareffects",
+  "sound_changevolumeby", "sound_setvolumeto", "sound_volume",
+
+  // 이벤트 (event)
+  "event_whenflagclicked", "event_whenkeypressed", "event_whenthisspriteclicked",
+  "event_whenbackdropswitchesto", "event_whengreaterthan", "event_whenbroadcastreceived",
+  "event_broadcast", "event_broadcastandwait",
+
+  // 제어 (control)
+  "control_wait", "control_repeat", "control_forever", "control_if", "control_if_else",
+  "control_wait_until", "control_repeat_until", "control_stop",
+  "control_start_as_clone", "control_create_clone_of", "control_delete_this_clone",
+
+  // 감지 (sensing)
+  "sensing_touchingobject", "sensing_touchingcolor", "sensing_coloristouchingcolor",
+  "sensing_distanceto", "sensing_askandwait", "sensing_answer",
+  "sensing_keypressed", "sensing_mousedown", "sensing_mousex", "sensing_mousey",
+  "sensing_loudness", "sensing_timer", "sensing_resettimer", "sensing_of",
+  "sensing_current", "sensing_dayssince2000", "sensing_username",
+
+  // 연산 (operator)
+  "operator_add", "operator_subtract", "operator_multiply", "operator_divide",
+  "operator_random", "operator_gt", "operator_lt", "operator_equals",
+  "operator_and", "operator_or", "operator_not", "operator_join",
+  "operator_letter_of", "operator_length", "operator_contains",
+  "operator_mod", "operator_round", "operator_mathop",
+
+  // 변수/리스트 (data)
+  "data_variable", "data_setvariableto", "data_changevariableby", "data_showvariable", "data_hidevariable",
+  "data_listcontents", "data_addtolist", "data_deleteoflist", "data_deletealloflist", "data_insertatlist",
+  "data_replaceitemoflist", "data_itemoflist", "data_itemnumoflist", "data_lengthoflist",
+  "data_listcontainsitem", "data_showlist", "data_hidelist",
+
+  // 내블록 (procedures)
+  "procedures_definition", "procedures_call", "procedures_prototype",
+
+  // 펜 (pen)
+  "pen_clear", "pen_stamp", "pen_penDown", "pen_penUp",
+  "pen_setPenColorToColor", "pen_changePenSizeBy", "pen_setPenSizeTo",
+  "pen_changePenShadeBy", "pen_setPenShadeToNumber", "pen_changePenColorBy",
+  "pen_setPenColorToNumber", "pen_changePenHueBy", "pen_setPenHueToNumber",
+  "pen_setPenColorToColor", "pen_changePenBrightnessBy", "pen_setPenBrightnessToNumber",
+  "pen_changePenSaturationBy", "pen_setPenSaturationToNumber",
+
+  // 서브 메뉴 블록들 (shadow 블록)
+  "event_broadcast_menu", "control_create_clone_of_menu", "looks_costume", "looks_backdrops",
+  "sound_sounds_menu", "sensing_touchingobjectmenu", "sensing_distancetomenu",
+  "sensing_of_object_menu", "pen_menu_colorParam", "math_number", "text", "math_integer",
+  "math_whole_number", "math_positive_number", "math_angle", "note"
+]);
+
+// 주입 전 정밀 에러/경고 화이트리스트 사전 검사기
+ScratchParser.validateStrict = function (parsedJson, envData) {
+  const errors = [];
+  const warnings = [];
+
+  if (!parsedJson || typeof parsedJson !== 'object' || Array.isArray(parsedJson)) {
+    return { ok: false, errors: ['올바른 JSON 객체 형식이 아닙니다.'], warnings: [] };
+  }
+
+  const sprites = envData && Array.isArray(envData.sprites) ? envData.sprites : [];
+  const variables = envData && Array.isArray(envData.variables) ? envData.variables : [];
+  const broadcasts = envData && Array.isArray(envData.broadcasts) ? envData.broadcasts : [];
+
+  for (const [targetName, scripts] of Object.entries(parsedJson)) {
+    // 1. 대상 스프라이트가 현재 프로젝트에 있는지 검사
+    const targetExists = sprites.includes(targetName) || targetName === "무대(배경)" || targetName === "Stage";
+    if (!targetExists) {
+      errors.push(`존재하지 않는 스프라이트 대상 [${targetName}]이 지정되었습니다.`);
+      continue;
+    }
+
+    if (!Array.isArray(scripts)) {
+      errors.push(`[${targetName}]의 스크립트는 배열 형식이어야 합니다.`);
+      continue;
+    }
+
+    scripts.forEach((script, scriptIdx) => {
+      const sequence = Array.isArray(script) ? script : [script];
+      
+      sequence.forEach((block, blockIdx) => {
+        if (!block || typeof block !== 'object') {
+          errors.push(`스프라이트 [${targetName}] -> ${scriptIdx}번째 스크립트 -> ${blockIdx}번째 요소: 올바른 블록 객체가 아닙니다.`);
+          return;
+        }
+        if (!block.opcode) {
+          errors.push(`스프라이트 [${targetName}] -> ${scriptIdx}번째 스크립트 -> ${blockIdx}번째 요소: "opcode"가 정의되어 있지 않습니다.`);
+          return;
+        }
+
+        const opcode = block.opcode;
+        // 2. Opcode의 화이트리스트 존재 검사
+        if (!ScratchParser.OFFICIAL_OPCODES.has(opcode)) {
+          errors.push(`지원하지 않는 블록 opcode [${opcode}]이(가) 감지되었습니다. (스프라이트: [${targetName}], 스크립트: ${scriptIdx})`);
+        }
+
+        // 3. 변수/신호 존재 확인 (경고 레벨)
+        if (opcode === "data_setvariableto" || opcode === "data_changevariableby" || opcode === "data_showvariable" || opcode === "data_hidevariable") {
+          const varName = block.fields && block.fields.VARIABLE;
+          if (varName) {
+            const varStr = (typeof varName === 'object') ? (varName.value || '') : String(varName);
+            if (varStr && !variables.includes(varStr)) {
+              warnings.push(`프로젝트에 존재하지 않는 변수 [${varStr}]을(를) 사용하고 있습니다. (스프라이트: [${targetName}])`);
+            }
+          }
+        }
+        if (opcode.startsWith("data_") && (opcode.includes("list") || opcode.includes("oflist"))) {
+          const listName = block.fields && block.fields.LIST;
+          if (listName) {
+            const listStr = (typeof listName === 'object') ? (listName.value || '') : String(listName);
+            const listKey = listStr + " (리스트)";
+            if (listStr && !variables.includes(listStr) && !variables.includes(listKey)) {
+              warnings.push(`프로젝트에 존재하지 않는 리스트 [${listStr}]을(를) 사용하고 있습니다. (스프라이트: [${targetName}])`);
+            }
+          }
+        }
+        if (opcode === "event_whenbroadcastreceived") {
+          const bName = block.fields && block.fields.BROADCAST_OPTION;
+          if (bName) {
+            const bStr = (typeof bName === 'object') ? (bName.value || '') : String(bName);
+            if (bStr && !broadcasts.includes(bStr)) {
+              warnings.push(`프로젝트에 존재하지 않는 방송 신호 [${bStr}]을(를) 수신하고 있습니다. (스프라이트: [${targetName}])`);
+            }
+          }
+        }
+        if (opcode === "event_broadcast" || opcode === "event_broadcastandwait") {
+          const inputVal = block.inputs && block.inputs.BROADCAST_INPUT;
+          let bStr = "";
+          if (inputVal && typeof inputVal === 'object' && inputVal.opcode === "event_broadcast_menu" && inputVal.fields) {
+            const bOption = inputVal.fields.BROADCAST_OPTION;
+            bStr = (typeof bOption === 'object') ? (bOption.value || '') : String(bOption);
+          }
+          if (bStr && !broadcasts.includes(bStr)) {
+            warnings.push(`프로젝트에 존재하지 않는 방송 신호 [${bStr}]을(를) 전송하고 있습니다. (스프라이트: [${targetName}])`);
+          }
+        }
+
+        // 4. 감지 블록의 스프라이트 타겟 존재 검사
+        if (opcode === "sensing_of") {
+          let objStr = "";
+          const inputVal = block.inputs && block.inputs.OBJECT;
+          if (inputVal && typeof inputVal === 'object' && inputVal.opcode === "sensing_of_object_menu" && inputVal.fields) {
+            const bObj = inputVal.fields.OBJECT;
+            objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+          } else if (block.fields && block.fields.OBJECT) {
+            const bObj = block.fields.OBJECT;
+            objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+          }
+          
+          if (objStr) {
+            const objExists = sprites.includes(objStr) || objStr === "_stage_" || objStr === "Stage" || objStr === "무대(배경)";
+            if (!objExists) {
+              errors.push(`[의 x좌표/y좌표/크기...] 감지 블록의 대상 스프라이트 [${objStr}]이(가) 프로젝트에 존재하지 않습니다.`);
+            }
+          }
+        }
+
+        if (opcode === "sensing_touchingobject") {
+          let objStr = "";
+          const inputVal = block.inputs && block.inputs.TOUCHINGOBJECTMENU;
+          if (inputVal && typeof inputVal === 'object' && inputVal.opcode === "sensing_touchingobjectmenu" && inputVal.fields) {
+            const bObj = inputVal.fields.TOUCHINGOBJECTMENU;
+            objStr = (typeof bObj === 'object') ? (bObj.value || '') : String(bObj);
+          }
+          if (objStr) {
+            const specialTargets = ["_mouse_", "_edge_", "_any_", "Stage", "무대(배경)"];
+            const objExists = sprites.includes(objStr) || specialTargets.includes(objStr);
+            if (!objExists) {
+              errors.push(`[~에 닿았는가] 감지 블록의 대상 스프라이트 [${objStr}]이(가) 프로젝트에 존재하지 않습니다.`);
+            }
+          }
+        }
+
+        // C자 블록 내부 검사 헬퍼
+        const checkSubStack = (substackVal) => {
+          if (Array.isArray(substackVal)) {
+            substackVal.forEach(subBlock => {
+              const res = ScratchParser.validateStrict({ [targetName]: [[subBlock]] }, envData);
+              errors.push(...res.errors);
+              warnings.push(...res.warnings);
+            });
+          }
+        };
+
+        if (block.inputs) {
+          Object.values(block.inputs).forEach(inVal => {
+            if (Array.isArray(inVal)) {
+              checkSubStack(inVal);
+            } else if (typeof inVal === 'object' && inVal !== null) {
+              if (inVal.opcode) {
+                const res = ScratchParser.validateStrict({ [targetName]: [[inVal]] }, envData);
+                errors.push(...res.errors);
+                warnings.push(...res.warnings);
+              } else if (Array.isArray(inVal.SUBSTACK)) {
+                checkSubStack(inVal.SUBSTACK);
+              } else if (Array.isArray(inVal.SUBSTACK2)) {
+                checkSubStack(inVal.SUBSTACK2);
+              }
+            }
+          });
+        }
+
+      });
+    });
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors: [...new Set(errors)],
+    warnings: [...new Set(warnings)]
+  };
+};
 
 // 명시적으로 전역(window) 환경에 부착하여 content.js에서 사용할 수 있도록 합니다.
 window.ScratchParser = ScratchParser;
