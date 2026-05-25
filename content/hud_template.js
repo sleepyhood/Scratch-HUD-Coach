@@ -57,16 +57,10 @@
 
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div id="hud-sprite-selection-container" style="background: #f1f5f9; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
-              <div style="font-size:11px; font-weight:bold; margin-bottom:6px; color:#334155;">🎯 프롬프트 생성 대상 선택</div>
+              <div style="font-size:11px; font-weight:bold; margin-bottom:6px; color:#334155;">🎯 스프라이트별 가이드 현황 및 선택</div>
               <div id="hud-prompt-guide-banner" style="font-size:10px; padding:6px; border-radius:4px; margin-bottom:6px; line-height:1.4; font-weight:500;"></div>
-              <div id="hud-sprite-checklist" style="display: flex; flex-direction: column; gap: 4px; max-height: 100px; overflow-y: auto;">
-                <label style="font-size:11px; color:#475569; display:flex; align-items:center; gap:4px; font-weight:bold;">
-                  <input type="checkbox" id="hud-cb-stage-overview" value="STAGE_AND_OVERVIEW" checked disabled style="accent-color:#6366f1;">
-                  무대(배경) 및 개요 (기본 포함)
-                </label>
-                <div id="hud-sprite-checklist-placeholder" style="font-size:10px; color:#ef4444; margin-top:4px; padding-left: 4px;">
-                  ⚠️ 무대에 가이드 주석이 먼저 주입되어야 개별 스프라이트 선택이 가능해집니다.
-                </div>
+              <div id="hud-sprite-checklist" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
+                <!-- JS에서 동적으로 행(Row)들을 생성해 주입합니다. -->
               </div>
             </div>
             
@@ -80,7 +74,7 @@
           <div id="ai-status"></div>
         </div>
       </div>
-
+ 
       <div class="hud-section" style="margin-top: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <h4 style="color: #4f46e5; margin: 0;">⚡ AI 생성 주석 주입 및 내보내기</h4>

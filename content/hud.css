@@ -631,3 +631,82 @@ select.hud-select:focus {
 .hud-inject-error {
   animation: hudShakeError 0.5s ease-in-out;
 }
+
+/* Unified Sprite Row Grid Layout */
+.hud-sprite-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--hud-space-xs, 4px) var(--hud-space-sm, 8px);
+  margin-bottom: var(--hud-space-xs, 4px);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: background-color 200ms var(--ease-out-expo, ease-out);
+}
+
+.hud-sprite-row:hover {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+.hud-sprite-row-left {
+  display: flex;
+  align-items: center;
+  gap: var(--hud-space-sm, 8px);
+  flex: 1;
+  min-width: 0;
+}
+
+.hud-sprite-row-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-sprite-row-checkbox {
+  accent-color: var(--hud-color-accent, #6366f1);
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+.hud-sprite-row-checkbox:disabled + .hud-sprite-row-label {
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.hud-status-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.hud-status-badge.injected {
+  background-color: oklch(0.95 0.03 140);
+  color: oklch(0.35 0.12 140);
+  border: 1px solid oklch(0.85 0.06 140);
+}
+
+.hud-status-badge.missing {
+  background-color: oklch(0.95 0.005 250);
+  color: oklch(0.50 0.01 250);
+  border: 1px solid oklch(0.85 0.01 250);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-sprite-row {
+    transition: none !important;
+  }
+}

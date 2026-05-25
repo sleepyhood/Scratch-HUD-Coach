@@ -713,7 +713,12 @@
 
       // ── 가이드 주석 전용 주입 ──────────────────────────────
       if (ev.data.type === "APPLY_COMMENTS_ONLY") {
-        const result = applyCommentsOnlyToVM(ev.data.payload.commentsJson, ev.data.payload.overview, ev.data.payload.mission);
+        const result = applyCommentsOnlyToVM(
+          ev.data.payload.commentsJson, 
+          ev.data.payload.overview, 
+          ev.data.payload.mission,
+          ev.data.payload.plan
+        );
         window.postMessage(
           { source: "scratch-hud", type: "APPLY_RESULT", payload: result },
           "*"
@@ -915,7 +920,7 @@
     return { ok: successCount > 0, successCount, errors: errorMsgs };
   }
 
-  function applyCommentsOnlyToVM(commentsJson, overview, mission) {
+  function applyCommentsOnlyToVM(commentsJson, overview, mission, plan) {
     const vm = findScratchVM();
     if (!vm || !vm.runtime || !vm.runtime.targets) return { ok: false, error: 'VM not found' };
 
@@ -942,30 +947,30 @@
        }
     }
 
-    if (injectStage) {
-      // 주입 차단 필터링: 최초 전체 JSON 주입 시 개별 스프라이트에는 가이드 주석이 들어가지 않도록 제어
-    } else {
+    if (!injectStage) {
       for (const [targetName, commentText] of Object.entries(commentsJson)) {
-      if (!commentText || typeof commentText !== 'string') continue;
-      const target = targets.find(t => {
-        if (t.isStage && targetName === "무대(배경)") return true;
-        return t.sprite && t.sprite.name === targetName;
-      });
-      if (target && target.comments) {
-        for (const cid of Object.keys(target.comments)) {
-          if (cid.startsWith('guide_comment_')) {
-            if (!targetsWithExistingGuide.includes(targetName)) {
-               targetsWithExistingGuide.push(targetName);
+        if (targetName === '개요' || targetName === '계획' || targetName === '미션') continue;
+        if (!commentText || (typeof commentText !== 'string' && typeof commentText !== 'object')) continue;
+        
+        const target = targets.find(t => {
+          if (t.isStage && targetName === "무대(배경)") return true;
+          return t.sprite && t.sprite.name === targetName;
+        });
+        if (target && target.comments) {
+          for (const cid of Object.keys(target.comments)) {
+            if (cid.startsWith('guide_comment_')) {
+              if (!targetsWithExistingGuide.includes(targetName)) {
+                 targetsWithExistingGuide.push(targetName);
+              }
+              break;
             }
-            break;
           }
         }
       }
     }
-    }
     
     if (targetsWithExistingGuide.length > 0) {
-      const confirmMsg = `${targetsWithExistingGuide.join(', ')}에 이미 가이드 주석이 존재합니다.\\n기존 주석을 지우고 새로 교체하시겠습니까?`;
+      const confirmMsg = `${targetsWithExistingGuide.join(', ')}에 이미 가이드 주석이 존재합니다.\n기존 주석을 지우고 새로 교체하시겠습니까?`;
       if (!window.confirm(confirmMsg)) {
         return { ok: false, error: '주석 덮어쓰기가 취소되었습니다.' };
       }
@@ -1016,14 +1021,31 @@
       const cleanOverview = (overview || '').replace(/\\n/g, '\n');
       const cleanMission = (mission || '').replace(/\\n/g, '\n');
       
-      let masterText = `[프로젝트 개요]\n${cleanOverview}\n\n[전체 구현 단계 요약]\n`;
-      for (const [tName, text] of Object.entries(commentsJson)) {
-         const lines = text.split(/\r?\n|\\n/);
-         let stepLine = lines[0] || '';
-         let summaryLine = lines[1] && lines[1].startsWith('요약:') ? lines[1].replace('요약:', '').trim() : '';
-         if (stepLine.startsWith('[')) stepLine = stepLine.substring(1, stepLine.length - 1);
-         
-         masterText += `- ${stepLine} (${tName}): ${summaryLine}\n`;
+      let masterText = `[프로젝트 개요]\n${cleanOverview}\n\n`;
+      
+      if (plan && Array.isArray(plan)) {
+        // 계획 배열이 존재하는 경우: 계획 배열을 텍스트로 합산
+        masterText += `[전체 구현 계획]\n`;
+        plan.forEach(step => {
+          masterText += `- ${step}\n`;
+        });
+      } else {
+        // 하위 호환성 폴백: 각 스프라이트 가이드의 헤더/요약을 파싱해서 합산
+        masterText += `[전체 구현 단계 요약]\n`;
+        for (const [tName, text] of Object.entries(commentsJson)) {
+           if (tName === '개요' || tName === '계획' || tName === '미션') continue;
+           if (typeof text === 'string') {
+             const lines = text.split(/\r?\n|\\n/);
+             let stepLine = lines[0] || '';
+             let summaryLine = lines[1] && lines[1].startsWith('요약:') ? lines[1].replace('요약:', '').trim() : '';
+             if (stepLine.startsWith('[')) stepLine = stepLine.substring(1, stepLine.length - 1);
+             masterText += `- ${stepLine} (${tName}): ${summaryLine}\n`;
+           } else if (typeof text === 'object' && text !== null) {
+             for (const [stepKey, stepDesc] of Object.entries(text)) {
+                masterText += `- ${stepKey} (${tName}): 요약\n`;
+             }
+           }
+        }
       }
       masterText += `\n[도전 미션]\n${cleanMission}`;
       
@@ -1048,44 +1070,54 @@
       // 주입 차단 필터링: 최초 전체 JSON 주입 시 개별 스프라이트에는 가이드 주석이 들어가지 않도록 제어
     } else {
       for (const [targetName, commentText] of Object.entries(commentsJson)) {
-      if (!commentText || typeof commentText !== 'string') continue;
+        if (targetName === '개요' || targetName === '계획' || targetName === '미션') continue;
+        if (!commentText || (typeof commentText !== 'string' && typeof commentText !== 'object')) continue;
 
-      const target = targets.find(t => {
-        if (t.isStage && targetName === "무대(배경)") return true;
-        return t.sprite && t.sprite.name === targetName;
-      });
+        const target = targets.find(t => {
+          if (t.isStage && targetName === "무대(배경)") return true;
+          return t.sprite && t.sprite.name === targetName;
+        });
 
-      if (!target) {
-        errorMsgs.push(`스프라이트 [${targetName}]를 찾을 수 없습니다.`);
-        continue;
+        if (!target) {
+          errorMsgs.push(`스프라이트 [${targetName}]를 찾을 수 없습니다.`);
+          continue;
+        }
+
+        try {
+          cleanExistingGuideComments(target);
+          
+          const pos = getDynamicPlacement(target);
+          if (!target.comments) target.comments = {};
+          
+          const commentId = 'guide_comment_' + Date.now() + Math.random().toString(36).substr(2, 5);
+          
+          let cleanCommentText = '';
+          if (typeof commentText === 'string') {
+            cleanCommentText = commentText.replace(/\\n/g, '\n');
+          } else if (typeof commentText === 'object' && commentText !== null) {
+            const stepEntries = [];
+            for (const [stepKey, stepDesc] of Object.entries(commentText)) {
+              const cleanDesc = (stepDesc || '').replace(/\\n/g, '\n');
+              stepEntries.push(`[${stepKey}]\n${cleanDesc}`);
+            }
+            cleanCommentText = stepEntries.join('\n\n');
+          }
+          
+          target.comments[commentId] = {
+            id: commentId,
+            blockId: null, 
+            x: pos.x,
+            y: pos.y,
+            width: 480,
+            height: 350,
+            minimized: false,
+            text: cleanCommentText
+          };
+          successCount++;
+        } catch (e) {
+          errorMsgs.push(`[${targetName}] 에러: ${e.message}`);
+        }
       }
-      
-      if (target.isStage && injectStage) continue;
-
-      try {
-        cleanExistingGuideComments(target);
-        
-        const pos = getDynamicPlacement(target);
-        if (!target.comments) target.comments = {};
-        
-        const commentId = 'guide_comment_' + Date.now() + Math.random().toString(36).substr(2, 5);
-        const cleanCommentText = (commentText || '').replace(/\\n/g, '\n');
-        
-        target.comments[commentId] = {
-          id: commentId,
-          blockId: null, 
-          x: pos.x,
-          y: pos.y,
-          width: 480,
-          height: 350,
-          minimized: false,
-          text: cleanCommentText
-        };
-        successCount++;
-      } catch (e) {
-        errorMsgs.push(`[${targetName}] 에러: ${e.message}`);
-      }
-    }
     }
 
     try {

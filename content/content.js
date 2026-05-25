@@ -325,12 +325,13 @@
         const parsed = JSON.parse(jsonStr);
         const overview = parsed.개요;
         const mission = parsed.미션;
+        const plan = parsed.계획;
         const commentsJson = parsed.가이드 || parsed;
         
         window.postMessage({
           source: "scratch-hud-content",
           type: "APPLY_COMMENTS_ONLY",
-          payload: { commentsJson, overview, mission }
+          payload: { commentsJson, overview, mission, plan }
         }, "*");
       } catch (e) {
         showAiStatus('❌ JSON 파싱 오류: ' + e.message, 'error');
@@ -353,13 +354,27 @@
         if (parsed.개요) {
           formattedText += `[프로젝트 개요]\n${parsed.개요}\n\n`;
         }
+
+        if (parsed.계획 && Array.isArray(parsed.계획)) {
+          formattedText += `[전체 구현 계획]\n${parsed.계획.map(step => `${step}`).join('\n')}\n\n`;
+        }
         
         const guides = parsed.가이드 || parsed;
-        if (typeof guides === 'object') {
+        if (typeof guides === 'object' && guides !== null) {
           formattedText += `[구현 가이드]\n`;
           for (const [spriteName, guideText] of Object.entries(guides)) {
+            // 메타 필드 스킵
+            if (spriteName === '개요' || spriteName === '계획' || spriteName === '미션') continue;
+
             if (typeof guideText === 'string') {
               formattedText += `■ ${spriteName}\n${guideText}\n\n`;
+            } else if (typeof guideText === 'object' && guideText !== null) {
+              formattedText += `■ ${spriteName}\n`;
+              for (const [stepKey, stepDesc] of Object.entries(guideText)) {
+                const cleanDesc = (stepDesc || '').replace(/\\n/g, '\n');
+                formattedText += `- ${stepKey}\n${cleanDesc}\n`;
+              }
+              formattedText += `\n`;
             }
           }
         }
@@ -454,27 +469,69 @@
         placeholder.style.display = "none";
       }
       
-      if (checklist && !checklist.hasAttribute('data-populated')) {
+      if (checklist) {
+        const checkedTargets = new Set();
+        checklist.querySelectorAll('.sprite-checkbox:checked').forEach(cb => {
+          checkedTargets.add(cb.value);
+        });
+
         checklist.innerHTML = "";
+        const rawComments = lastSnapshot.rawCommentsByTarget || {};
+
         for (const targetName of Object.keys(lastParsedByTarget)) {
           const label = document.createElement("label");
           label.style.fontSize = "11px";
           label.style.color = "#475569";
           label.style.display = "flex";
           label.style.alignItems = "center";
+          label.style.justifyContent = "space-between";
+          label.style.width = "100%";
           label.style.gap = "4px";
+          label.style.cursor = "pointer";
+          
+          const leftDiv = document.createElement("div");
+          leftDiv.style.display = "flex";
+          leftDiv.style.alignItems = "center";
+          leftDiv.style.gap = "4px";
           
           const cb = document.createElement("input");
           cb.type = "checkbox";
           cb.className = "sprite-checkbox";
           cb.value = targetName;
           cb.style.accentColor = "#6366f1";
+          cb.style.cursor = "pointer";
+          if (checkedTargets.has(targetName)) {
+            cb.checked = true;
+          }
           
-          label.appendChild(cb);
-          label.appendChild(document.createTextNode(targetName));
+          leftDiv.appendChild(cb);
+          leftDiv.appendChild(document.createTextNode(targetName));
+          label.appendChild(leftDiv);
+          
+          // Check injection status
+          let isCompleted = false;
+          const targetComments = rawComments[targetName] || {};
+          for (const cid of Object.keys(targetComments)) {
+            if (cid.startsWith('guide_comment_')) {
+              isCompleted = true;
+              break;
+            }
+          }
+          
+          const statusSpan = document.createElement("span");
+          statusSpan.style.fontSize = "10px";
+          statusSpan.style.fontWeight = "bold";
+          if (isCompleted) {
+            statusSpan.style.color = "#166534";
+            statusSpan.innerHTML = "✅ 주입 완료";
+          } else {
+            statusSpan.style.color = "#b91c1c";
+            statusSpan.innerHTML = "❌ 미주입";
+          }
+          
+          label.appendChild(statusSpan);
           checklist.appendChild(label);
         }
-        checklist.setAttribute('data-populated', 'true');
       }
 
       // Update comment injection progress checklist
@@ -935,9 +992,18 @@
 
 {
   "개요": "이 프로젝트가 무엇을 만드는 것인지, 어떤 동작을 하는지를 초등학생이 이해할 수 있도록 2~3문장으로 설명합니다.",
+  "계획": [
+    "1단계: [단계 제목]",
+    "2단계: [단계 제목]"
+  ],
   "가이드": {
-    "스프라이트이름1": "[N단계: 단계 제목]\\n요약: [단 1줄의 핵심 요약]",
-    "스프라이트이름2": "[N단계: 단계 제목]\\n요약: [단 1줄의 핵심 요약]"
+    "스프라이트이름1": {
+      "1단계: [단계 제목]": "요약: [단 1줄의 핵심 요약]",
+      "2단계: [단계 제목]": "요약: [단 1줄의 핵심 요약]"
+    },
+    "스프라이트이름2": {
+      "1단계: [단계 제목]": "요약: [단 1줄의 핵심 요약]"
+    }
   },
   "미션": "완성된 프로젝트를 발전시킬 도전 과제 2~3가지를 의문문 형태로 작성합니다.\\n1. ...\\n2. ..."
 }
@@ -957,16 +1023,27 @@
 - 대상 독자: 초등학교 저학년
 - 간결성: 각 번호 항목은 1~2줄 이내로 끝냅니다.
 - 문장 스타일 구분: 난이도에 따라 지정된 문장 스타일을 준수합니다.
+- 사전에 설계된 **[전체 설계도(Blueprint)]**를 반드시 참고하여, 신호(Broadcast)명이나 변수명이 다른 스프라이트의 동작과 완벽히 일치하도록 맞추세요.
 
 ### 📄 전체 출력 구조 (반드시 이 순서와 규칙을 지켜주세요)
 가이드북은 아래 구조를 가지는 **단일 JSON 객체**로만 출력합니다. Markdown 기호(\`\`\`)나 다른 설명은 일절 추가하지 마세요.
+또한 JSON 문자열 값 내부에 줄바꿈을 표현할 때는 반드시 이스케이프된 문자열인 "\\n" 만을 사용하고, 절대 실제 줄바꿈을 넣지 마세요.
 
 {
   "가이드": {
-    "선택된스프라이트1": "[N단계: 단계 제목]\n요약: [이 단계에서 수행하는 핵심 작업 요약]\n1. 구현 가이드...\n2. 구현 가이드...",
-    "선택된스프라이트2": "[N단계: 단계 제목]\n요약: [이 단계에서 수행하는 핵심 작업 요약]\n1. 구현 가이드...\n2. 구현 가이드..."
+    "선택된스프라이트1": {
+      "N단계: [단계 제목]": "요약: [이 단계에서 수행하는 핵심 작업 요약]\\n1. 구현 가이드...\\n2. 구현 가이드..."
+    },
+    "선택된스프라이트2": {
+      "N단계: [단계 제목]": "요약: [이 단계에서 수행하는 핵심 작업 요약]\\n1. 구현 가이드...\\n2. 구현 가이드..."
+    }
   }
 }
+
+---
+
+### 🏛 전체 설계도(Blueprint) 참고 정보
+{STAGE_BLUEPRINT_CONTEXT}
 
 ---
 
@@ -980,7 +1057,9 @@
 
 {
   "가이드": {
-    "고기접시": "[2단계: 불판에 고기 올리기]\n요약: 접시를 클릭하여 불판에 고기 복제본을 생성하고 신호를 보냅니다.\n1. 마우스 포인터에 닿았는지와 마우스를 클릭했는지를 계속해서 감시하도록 구조를 설계해 보세요.\n2. 조건이 만족되면 다른 스프라이트들이 알 수 있도록 [고기] 신호를 보냅니다."
+    "고기접시": {
+      "2단계: 불판에 고기 올리기": "요약: 접시를 클릭하여 불판에 고기 복제본을 생성하고 신호를 보냅니다.\\n1. 마우스 포인터에 닿았는지와 마우스를 클릭했는지를 계속해서 감시하도록 구조를 설계해 보세요.\\n2. 조건이 만족되면 다른 스프라이트들이 알 수 있도록 [고기] 신호를 보냅니다."
+    }
   }
 }
 
@@ -999,11 +1078,15 @@
       return;
     }
 
+    const rawComments = lastSnapshot.rawCommentsByTarget || {};
     const cleanComments = lastSnapshot.cleanCommentsByTarget || {};
     let hasStageGuide = false;
-    for (const [targetName, texts] of Object.entries(cleanComments)) {
-      for (const text of texts) {
-        if (text.includes("개요") && text.includes("미션")) {
+
+    // 1. ID 접두사로 검사
+    for (const targetName of Object.keys(rawComments)) {
+      const targetComments = rawComments[targetName] || {};
+      for (const cid of Object.keys(targetComments)) {
+        if (cid.startsWith('overview_comment_')) {
           hasStageGuide = true;
           break;
         }
@@ -1011,11 +1094,27 @@
       if (hasStageGuide) break;
     }
 
+    // 2. 하위 호환성을 위해 텍스트 키워드로도 검사
+    if (!hasStageGuide) {
+      for (const [targetName, texts] of Object.entries(cleanComments)) {
+        for (const text of texts) {
+          if (text.includes("개요") && text.includes("미션")) {
+            hasStageGuide = true;
+            break;
+          }
+        }
+        if (hasStageGuide) break;
+      }
+    }
+
     let promptStr = "";
 
     if (!hasStageGuide) {
       // INITIAL MODE
-      promptStr = PROMPT_TEMPLATE_INITIAL.replace('{JSON_DATA}', JSON.stringify(lastParsedByTarget, null, 2));
+      const targetListStr = Object.keys(lastParsedByTarget).join(', ');
+      promptStr = PROMPT_TEMPLATE_INITIAL
+        .replace('{TARGET_LIST}', targetListStr)
+        .replace('{JSON_DATA}', JSON.stringify(lastParsedByTarget, null, 2));
       
       try {
         await navigator.clipboard.writeText(promptStr);
@@ -1040,6 +1139,21 @@
         }
       }
 
+      // 무대 설계도(Blueprint) 컨텍스트 추출
+      let blueprintText = "설계도 주석을 찾을 수 없습니다. 먼저 최초 뼈대 설계 가이드를 주입해 주세요.";
+      for (const targetName of Object.keys(rawComments)) {
+        const targetComments = rawComments[targetName] || {};
+        for (const cid of Object.keys(targetComments)) {
+          if (cid.startsWith('overview_comment_')) {
+            const commentObj = targetComments[cid];
+            if (commentObj && commentObj.text) {
+              blueprintText = commentObj.text;
+            }
+            break;
+          }
+        }
+      }
+
       const selectEl = root.querySelector("#hud-comment-level-select");
       const level = selectEl ? selectEl.value : "basic";
 
@@ -1060,6 +1174,7 @@
       promptStr = PROMPT_TEMPLATE_DETAIL
         .replace('{USER_SELECTED_LEVEL}', levelStr)
         .replace('{LEVEL_SPECIFIC_INSTRUCTION}', levelInst)
+        .replace('{STAGE_BLUEPRINT_CONTEXT}', blueprintText)
         .replace('{JSON_DATA}', JSON.stringify(filteredData, null, 2));
 
       try {
